@@ -1,0 +1,42 @@
+{% extends 'shop/base.html' %}
+{% block title %}Lịch sử đơn hàng{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-white text-center mb-4">🧾 Lịch sử đơn hàng</h2>
+
+  {% if orders %}
+    {% for order in orders %}
+      <div class="card bg-dark text-white mb-4 shadow">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <strong>🛍️ Đơn hàng #{{ order.id }}</strong>
+          <span>{{ order.created_at|date:"d/m/Y H:i" }}</span>
+        </div>
+        <div class="card-body">
+          <p><strong>👤 Họ tên:</strong> {{ order.full_name }}</p>
+          <p><strong>📧 Email:</strong> {{ order.email }}</p>
+          <p><strong>📞 SĐT:</strong> {{ order.phone }}</p>
+          <p><strong>📍 Địa chỉ:</strong> {{ order.address }}</p>
+
+          <hr class="border-light">
+
+          <h6 class="mb-2">🛒 Sản phẩm:</h6>
+          <ul class="list-group list-group-flush">
+            {% for item in order.items.all %}
+              <li class="list-group-item bg-dark text-white border-secondary">
+                {{ item.product.name }} × {{ item.quantity }}
+              </li>
+            {% endfor %}
+          </ul>
+
+          <div class="mt-3 text-end">
+            <strong class="text-success">Tổng tiền: {{ order.total_price|floatformat:0 }} đ</strong>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-white text-center">Bạn chưa có đơn hàng nào.</p>
+  {% endif %}
+</div>
+{% endblock %}

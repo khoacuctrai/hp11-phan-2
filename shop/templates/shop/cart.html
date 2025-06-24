@@ -1,0 +1,88 @@
+{% extends 'shop/base.html' %}
+{% block content %}
+<h2>🍎 Giỏ hàng của bạn</h2>
+
+{% if cart_items %}
+<table class="table">
+  <thead>
+    <tr>
+      <th>Sản phẩm</th>
+      <th>Số lượng</th>
+      <th>Thành tiền</th>
+      <th>Hành động</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in cart_items %}
+    <tr>
+      <!-- Tên + cấu hình -->
+      <td>
+        {{ item.product.name }}
+        {% if item.variant %}
+          <br><small class="text-muted">({{ item.variant.ram }} / {{ item.variant.storage }})</small>
+        {% endif %}
+      </td>
+
+      <!-- Số lượng -->
+      <td>
+        <form action="{% url 'decrease_quantity' item.id %}" method="POST" style="display:inline-block">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-secondary">&minus;</button>
+        </form>
+
+        <span class="mx-2">{{ item.quantity }}</span>
+
+        <form action="{% url 'increase_quantity' item.id %}" method="POST" style="display:inline-block">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-secondary">+</button>
+        </form>
+      </td>
+
+      <!-- Thành tiền -->
+      <td class="currency">
+        {% if item.variant %}
+          {{ item.variant.price|floatformat:0|add:item.quantity|floatformat:0 }}
+        {% else %}
+          {{ item.product.price|floatformat:0|add:item.quantity|floatformat:0 }}
+        {% endif %}
+      </td>
+
+      <!-- Bỏ hàng -->
+      <td>
+        <form action="{% url 'remove_from_cart' item.id %}" method="POST" style="display:inline-block">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm">Bỏ hàng</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+    <!-- Tổng cộng -->
+    <tr>
+      <td colspan="2"><strong>Tổng cộng:</strong></td>
+      <td class="currency"><strong>{{ total_price|floatformat:0 }}</strong></td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Nút thanh toán -->
+<div class="text-end mt-3">
+  <a href="{% url 'checkout' %}" class="btn btn-primary">Thanh toán</a>
+</div>
+
+{% else %}
+<p>Giỏ hàng của bạn đang trống.</p>
+{% endif %}
+
+<!-- Script định dạng tiền VNĐ -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.currency').forEach(function (el) {
+      let number = el.textContent.replace(/[^\d]/g, '');
+      if (number) {
+        el.textContent = Number(number).toLocaleString('vi-VN') + ' đ';
+      }
+    });
+  });
+</script>
+{% endblock %}

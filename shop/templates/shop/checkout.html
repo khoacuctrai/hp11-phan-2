@@ -1,0 +1,45 @@
+{% extends 'shop/base.html' %}
+{% block title %}Thanh toán{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow border-0">
+        <div class="card-body p-4">
+          <h2 class="mb-4 text-center text-success">🧾 Thông tin đặt hàng</h2>
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label for="{{ form.full_name.id_for_label }}" class="form-label fw-semibold">Họ và tên</label>
+              {{ form.full_name }}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">Email</label>
+              {{ form.email }}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.phone.id_for_label }}" class="form-label fw-semibold">Số điện thoại</label>
+              {{ form.phone }}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.address.id_for_label }}" class="form-label fw-semibold">Địa chỉ nhận hàng</label>
+              {{ form.address}}
+            </div>
+
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-success btn-lg">
+                ✅ Xác nhận đặt hàng
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

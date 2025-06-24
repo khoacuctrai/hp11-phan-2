@@ -1,0 +1,82 @@
+{% extends 'shop/base.html' %}
+{% block content %}
+<style>
+  .card-custom {
+    background-color: #1e1e1e;
+    color: white;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+    transition: transform 0.3s ease;
+  }
+
+  .card-custom:hover {
+    transform: translateY(-5px);
+  }
+
+  .card-custom img {
+    max-height: 250px;
+    object-fit: contain;
+    margin-bottom: 10px;
+  }
+
+  .card-custom .price {
+    font-weight: bold;
+    font-size: 20px;
+    color: #ffc107;
+  }
+
+  .btn-outline-light {
+    border: 1px solid white;
+    color: white;
+    background-color: transparent;
+  }
+
+  .btn-outline-light:hover {
+    background-color: white;
+    color: black;
+  }
+</style>
+
+<div class="container mt-4">
+  <h2 class="text-center text-white mb-4">Sản phẩm Phụ Kiện</h2>
+  <div class="row">
+    {% for product in products %}
+      <div class="col-md-4 mb-4">
+        <div class="card-custom h-100">
+          <img src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}">
+          <h5 class="mt-3">{{ product.name }}</h5>
+
+          {% with product.variants.first as variant %}
+            {% if variant %}
+              <p class="price" data-raw="{{ variant.price }}">{{ variant.price }}</p>
+            {% elif product.price %}
+              <p class="price" data-raw="{{ product.price }}">{{ product.price }}</p>
+            {% else %}
+              <p class="text-muted fst-italic">Liên hệ để biết giá</p>
+            {% endif %}
+          {% endwith %}
+
+          <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-light">Xem chi tiết</a>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-center text-white">Không có sản phẩm Phụ Kiện nào.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.price').forEach(function (el) {
+      const raw = el.getAttribute('data-raw');
+      const num = parseFloat(raw);
+      if (!isNaN(num)) {
+        el.textContent = num.toLocaleString('vi-VN') + '₫';
+      }
+    });
+  });
+</script>
+
+{% endblock %}

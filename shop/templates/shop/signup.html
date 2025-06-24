@@ -1,0 +1,84 @@
+{% extends 'shop/base.html' %}
+{% block title %}Đăng ký{% endblock %}
+{% block content %}
+<style>
+    body {
+        background-color: #1e1e1e;
+        color: white;
+    }
+
+    .signup-box {
+        max-width: 500px;
+        margin: 80px auto;
+        background-color: #2c2c2c;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(255, 105, 180, 0.2);
+    }
+
+    .signup-box h2 {
+        color: #ff66cc;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .signup-box label {
+        color: #ddd;
+    }
+
+    .form-control {
+        background-color: #3a3a3a;
+        border: none;
+        color: white;
+    }
+
+    .form-control::placeholder {
+        color: #aaa;
+    }
+
+    .btn-signup {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        width: 100%;
+    }
+
+    .btn-signup:hover {
+        background-color: #38c172;
+    }
+
+    .text-login {
+        text-align: center;
+        margin-top: 15px;
+    }
+
+    .text-login a {
+        color: #ccc;
+        text-decoration: none;
+    }
+
+    .text-login a:hover {
+        color: #fff;
+    }
+</style>
+
+<div class="signup-box">
+    <h2>Đăng ký tài khoản</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    <div class="text-danger small">{{ field.errors|striptags }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-signup mt-3">Đăng ký</button>
+    </form>
+    <div class="text-login">
+        <p>Đã có tài khoản? <a href="{% url 'login' %}">Đăng nhập ngay</a></p>
+    </div>
+</div>
+{% endblock %}

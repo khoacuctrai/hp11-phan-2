@@ -1,0 +1,172 @@
+  {% extends 'shop/base.html' %}
+  {% block title %}{{ product.name }} - Chi tiết sản phẩm{% endblock %}
+
+  {% block content %}
+  <div class="container mt-4">
+    <!-- Thông báo -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row">
+      <!-- Ảnh sản phẩm -->
+      <div class="col-md-6 mb-3">
+        <img id="product-image" src="{{ product.image.url }}" class="img-fluid rounded shadow" alt="{{ product.name }}">
+      </div>
+
+      <!-- Thông tin sản phẩm -->
+      <div class="col-md-6">
+        <h2 class="text-warning">{{ product.name }}</h2>
+
+        <!-- Màu sắc -->
+        {% if colors %}
+          <div class="mb-3">
+            <label for="color-select" class="form-label fw-bold">Chọn màu:</label>
+            <select id="color-select" class="form-select" onchange="updateImageByColor()">
+              {% for color in colors %}
+                <option value="{{ color.image.url }}">{{ color.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        {% endif %}
+
+        {% if product.has_variants %}
+          {% if variants %}
+            <form method="post">
+              {% csrf_token %}
+              <div class="mb-3">
+                <label for="variant_id" class="form-label fw-bold">Chọn cấu hình:</label>
+                <select name="variant_id" id="variant_id" class="form-select" onchange="updatePrice()">
+                  {% for v in variants %}
+                    <option value="{{ v.id }}" data-price="{{ v.price }}">{{ v.storage }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <p><strong>Giá:</strong>
+                <span id="variant-price" class="text-danger fw-bold">{{ variants.0.price|floatformat:0 }}</span> VNĐ
+              </p>
+
+              <div class="mb-3">
+                <label for="quantity" class="form-label">Số lượng:</label>
+                <input type="number" name="quantity" value="1" min="1" class="form-control w-25">
+              </div>
+
+              <button type="submit" class="btn btn-success">🛖 Thêm vào giỏ</button>
+            </form>
+          {% else %}
+            <p class="text-danger">Sản phẩm chưa có biến thể.</p>
+          {% endif %}
+        {% else %}
+          <form method="post">
+            {% csrf_token %}
+            <p><strong>Giá:</strong>
+              <span class="text-danger fw-bold">{{ product.display_price|floatformat:0 }}</span> VNĐ
+            </p>
+
+            <div class="mb-3">
+              <label for="quantity" class="form-label">Số lượng:</label>
+              <input type="number" name="quantity" value="1" min="1" class="form-control w-25">
+            </div>
+
+            <button type="submit" class="btn btn-success">🛖 Thêm vào giỏ</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- Bình luận -->
+    <h4 class="mt-5 mb-3">💬 Bình luận</h4>
+
+    <div class="card bg-dark text-white shadow-sm mb-4">
+      <div class="card-body">
+        <form method="post" action="?comment=true">
+          {% csrf_token %}
+          <div class="mb-3">
+            {{ form.content.label_tag }}
+            {{ form.content }}
+          </div>
+          <button type="submit" class="btn btn-pink">Gửi bình luận</button>
+        </form>
+      </div>
+    </div>
+
+    {% for c in comments %}
+  {% include 'shop/partials/comment_card.html' with c=c %}
+{% empty %}
+  <p class="text-muted">Chưa có bình luận nào.</p>
+{% endfor %}
+
+
+    <hr>
+
+    <!-- Gợi ý sản phẩm -->
+    <h4 class="mt-5 text-warning">🧠 Gợi ý sản phẩm tương tự</h4>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mt-3">
+      {% for p in related_products %}
+        <div class="col">
+          <div class="card h-100 shadow-sm border-0 bg-light">
+            <img src="{{ p.image.url }}" class="card-img-top p-3" style="height: 180px; object-fit: contain;">
+            <div class="card-body text-center">
+              <h6 class="card-title text-dark">{{ p.name|truncatechars:50 }}</h6>
+              <p class="text-danger fw-bold mb-2">
+                <span class="related-price" data-price="{{ p.display_price|floatformat:0 }}"></span> VNĐ
+              </p>
+              <a href="{% url 'product_detail' p.id %}" class="btn btn-outline-dark btn-sm">Xem chi tiết</a>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-muted">Không có gợi ý nào.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script>
+    function updatePrice() {
+      const select = document.getElementById("variant_id");
+      const price = select.options[select.selectedIndex].getAttribute("data-price");
+      document.getElementById("variant-price").textContent = parseFloat(price).toLocaleString("vi-VN");
+    }
+
+    function updateImageByColor() {
+      const select = document.getElementById("color-select");
+      const image = document.getElementById("product-image");
+      image.src = select.value;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      updatePrice();
+      document.querySelectorAll(".related-price").forEach(function (el) {
+        const raw = parseFloat(el.dataset.price);
+        el.textContent = isNaN(raw) ? "Liên hệ" : raw.toLocaleString("vi-VN");
+      });
+    });
+  </script>
+
+  <style>
+    .bg-pink {
+      background-color: #ff66b2 !important;
+    }
+
+    .btn-pink {
+      background-color: #ff66b2;
+      color: white;
+      border: none;
+      transition: all 0.3s ease;
+    }
+
+    .btn-pink:hover {
+      background-color: #ff3399;
+      color: white;
+    }
+  </style>
+  {% endblock %}

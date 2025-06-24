@@ -1,0 +1,101 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<style>
+  .card:hover {
+    transform: translateY(-5px);
+    transition: 0.3s ease;
+  }
+
+  .card .price {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #ffc107;
+  }
+
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    background-color: #000;
+    border-radius: 50%;
+    padding: 15px;
+  }
+
+  .carousel-item .card {
+    background-color: #1c1c1c;
+    color: #fff;
+    border: none;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.05);
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .card-text {
+    margin-bottom: 0.5rem;
+  }
+</style>
+
+<div class="container py-5">
+  <h2 class="mb-4 text-center text-white fw-bold" style="font-size: 2rem;">Sản phẩm nổi bật</h2>
+
+  {% if product_groups %}
+  <div id="featuredCarousel" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+      {% for group in product_groups %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+          <div class="row justify-content-center">
+            {% for p in group %}
+              <div class="col-sm-12 col-md-6 col-lg-4 mb-4 d-flex align-items-stretch">
+                <div class="card text-center w-100 p-3 rounded-4">
+                  <img src="{{ p.image.url }}" alt="{{ p.name }}" class="card-img-top mb-3 img-fluid"
+                       style="height: 230px; object-fit: contain;">
+                  <div class="card-body">
+                    <h5 class="card-title">{{ p.name }}</h5>
+                    {% with p.variants.first as variant %}
+                      {% if variant %}
+                        <p class="card-text price" data-raw-price="{{ variant.price }}">{{ variant.price }}</p>
+                      {% else %}
+                        <p class="text-muted fst-italic">Liên hệ để biết giá</p>
+                      {% endif %}
+                    {% endwith %}
+                    <a href="{% url 'product_detail' p.id %}" class="btn btn-outline-warning btn-sm mt-2">Xem chi tiết</a>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#featuredCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#featuredCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+  {% else %}
+    <p class="text-white text-center mt-4">Hiện không có sản phẩm nổi bật.</p>
+  {% endif %}
+</div>
+
+<!-- ✅ Format giá -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.price').forEach(function (el) {
+      const raw = el.getAttribute('data-raw-price');
+      if (raw) {
+        const num = parseFloat(raw);
+        if (!isNaN(num)) {
+          el.textContent = num.toLocaleString('vi-VN') + '₫';
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

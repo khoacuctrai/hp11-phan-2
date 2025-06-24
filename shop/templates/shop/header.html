@@ -1,0 +1,231 @@
+ {% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+ 
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sản phẩm</title>
+
+  <!-- Bootstrap & FontAwesome -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'styles.css' %}">
+
+  <style>
+  body {
+    background-color: #2e2e2e;
+    color: #f8f9fa;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .navbar {
+    background: rgba(30, 30, 30, 0.75);
+    backdrop-filter: blur(12px);
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease-in-out;
+  }
+
+  .navbar-brand {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #ff4da6;
+    transition: 0.3s ease;
+  }
+
+  .navbar-brand:hover {
+    color: #ff80bf;
+    transform: scale(1.05);
+  }
+
+  .nav-link {
+    color: #f8f9fa;
+    margin-right: 10px;
+    transition: 0.3s ease;
+  }
+
+  .nav-link:hover {
+    color: #ff80bf;
+    text-shadow: 0 0 5px #ff80bf;
+  }
+
+  .dropdown-menu {
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .dropdown-menu a {
+    color: #333;
+    transition: 0.3s;
+  }
+
+  .dropdown-menu a:hover {
+    background: #f8f9fa;
+  }
+
+  .btn-outline-light.btn-sm:hover {
+    background: #ff80bf;
+    color: #fff;
+    border-color: #ff80bf;
+  }
+
+  .btn-outline-light.btn-sm:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 128, 191, 0.4);
+  }
+
+  .btn-cart {
+    transition: transform 0.3s ease, background-color 0.3s ease;
+  }
+
+  .btn-cart:hover {
+    transform: scale(1.05);
+    background-color: #ff80bf;
+    color: #fff;
+    border-color: #ff80bf;
+  }
+
+  /* Search dropdown */
+  #searchForm {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: all 0.4s ease;
+    pointer-events: none;
+  }
+
+  #searchForm.show {
+    max-height: 100px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  </style>
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{% url 'home' %}">Khoazone</a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNavbar">
+      <!-- Nav Links -->
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link" href="{% url 'iphone_products' %}">iPhone</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'macbook_products' %}">MacBook</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'ipad_products' %}">iPad</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'watch_products' %}">Watch</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'audio_products' %}">Tai nghe</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'accessory_products' %}">Phụ kiện</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'feedback' %}">Góp ý / Khiếu nại</a></li>
+      </ul>
+
+      <!-- Search -->
+      <div class="search-wrapper position-relative me-3">
+        <button class="btn btn-outline-light btn-sm" id="toggleSearch" type="button">
+          <i class="fas fa-search"></i>
+        </button>
+        <form id="searchForm" class="position-absolute top-100 start-0 mt-2 bg-dark p-2 rounded shadow"
+              style="z-index: 1000; width: 250px;" action="{% url 'search_products' %}" method="get">
+          <div class="input-group">
+            <input class="form-control form-control-sm" name="q" type="search" placeholder="Tìm sản phẩm...">
+            <button class="btn btn-outline-light btn-sm" type="submit">Tìm</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tài khoản -->
+      <div class="dropdown me-3">
+        <button class="btn btn-light dropdown-toggle btn-sm" type="button" id="authDropdown"
+                data-bs-toggle="dropdown" aria-expanded="false">
+          {% if request.user.is_authenticated %}
+            👤 {{ request.user.username }}
+          {% else %}
+            Tài khoản
+          {% endif %}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="authDropdown">
+          {% if request.user.is_authenticated %}
+            <li><a class="dropdown-item" href="{% url 'order_history' %}">Lịch sử đơn hàng</a></li>
+            <form method="POST" action="{% url 'logout' %}" class="px-3 py-1">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-dark btn-sm w-100">Đăng xuất</button>
+            </form>
+          {% else %}
+            <li><a class="dropdown-item" href="{% url 'login' %}">Đăng nhập</a></li>
+            <li><a class="dropdown-item" href="{% url 'signup' %}">Đăng ký</a></li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <!-- Giỏ hàng -->
+      <a href="{% url 'cart' %}" class="btn btn-outline-light btn-sm btn-cart">🛒 Giỏ hàng</a>
+    </div>
+  </div>
+</nav>
+
+
+
+<!-- Carousel -->
+{% include 'shop/carousel.html' %}
+<div class="category-bar d-flex justify-content-center flex-wrap gap-3 py-4">
+  <a href="{% url 'iphone_products' %}" class="category-item text-center text-decoration-none text-white">
+    <img src="https://product.hstatic.net/200000348419/product/16_hero_8989f185e9cf4a9d8165236eeaa97c74_master.png" alt="iPhone" style="max-height: 100px;">
+    <p class="mt-2">iPhone</p>
+  </a>
+
+  <a href="{% url 'macbook_products' %}" class="category-item text-center text-decoration-none text-white">
+    <img src="https://product.hstatic.net/200000348419/product/macbook_air_13_inch_m1_2020_silver_0_61ab8f169379480c894e67ecd821d448_large.png" alt="Mac" style="max-height: 100px;">
+    <p class="mt-2">Mac</p>
+  </a>
+
+  <a href="{% url 'ipad_products' %}" class="category-item text-center text-decoration-none text-white">
+    <img src="https://bizweb.dktcdn.net/thumb/large/100/444/581/products/1-d7546ef2-3d2c-4c82-ab9d-21eb44127acf.png?v=1720253464613" alt="iPad" style="max-height: 100px;">
+    <p class="mt-2">iPad</p>
+  </a>
+
+  <a href="{% url 'watch_products' %}" class="category-item text-center text-decoration-none text-white">
+    <img src="https://truesmart.com.vn/wp-content/uploads/apple-watch-se-44mm-gps-ban-nhom-cu-p9833.png" alt="Watch" style="max-height: 100px;">
+    <p class="mt-2">Watch</p>
+  </a>
+
+  <a href="{% url 'audio_products' %}" class="category-item text-center text-decoration-none text-white">
+    <img src="https://product.hstatic.net/200000348419/product/airpods-max-2024-0_8858229875d4450d8ddd918247a71f54.png" alt="Tai nghe, loa" style="max-height: 100px;">
+    <p class="mt-2">Tai nghe, loa</p>
+  </a>
+
+  <a href="{% url 'accessory_products' %}" class="category-item text-center text-decoration-none text-white">
+    <img src="https://cdn.tgdd.vn/Products/Images/9499/230315/s16/adapter-sac-type-c-20w-cho-iphone-ipad-apple-mhje3-101021-023343-650x650.png" alt="Phụ kiện" style="max-height: 100px;">
+    <p class="mt-2">Phụ kiện</p>
+  </a>
+</div>
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const toggleBtn = document.getElementById("toggleSearch");
+    const searchForm = document.getElementById("searchForm");
+
+    toggleBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      searchForm.classList.toggle("show");
+      const input = searchForm.querySelector("input");
+      if (searchForm.classList.contains("show")) {
+        setTimeout(() => input.focus(), 300);
+      }
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!searchForm.contains(e.target) && !toggleBtn.contains(e.target)) {
+        searchForm.classList.remove("show");
+      }
+    });
+  });
+</script>
+</body>
+</html>
