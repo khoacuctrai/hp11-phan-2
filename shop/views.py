@@ -18,6 +18,7 @@ def chunk_products(lst, size):
     for i in range(0, len(lst), size):
         yield lst[i:i + size]
 
+
 def home(request):
     featured_products = Product.objects.filter(is_featured=True)
     product_groups = list(chunk_products(featured_products, 3))
