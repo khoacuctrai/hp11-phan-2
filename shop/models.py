@@ -35,7 +35,7 @@ class Product(models.Model):
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
-    storage = models.CharField(max_length=20)
+    storage = models.CharField(max_length=200)
     price = models.FloatField()
     color = models.ForeignKey('ProductColor', on_delete=models.CASCADE, related_name='variants', null=True, blank=True)
 
