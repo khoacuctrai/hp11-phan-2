@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'shop',  # app chính
     'django.contrib.humanize',
+    'widget_tweaks',
 ]
 
 # ✅ Middleware xử lý request

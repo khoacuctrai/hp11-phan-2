@@ -1,6 +1,8 @@
 {% extends 'shop/base.html' %}
 {% block title %}Đăng ký{% endblock %}
 {% block content %}
+{% load widget_tweaks %}
+
 <style>
     body {
         background-color: #1e1e1e;
@@ -67,9 +69,9 @@
     <form method="post">
         {% csrf_token %}
         {% for field in form %}
-            <div class="form-group">
+            <div class="form-group mb-3">
                 {{ field.label_tag }}
-                {{ field }}
+                {{ field|add_class:"form-control" }}
                 {% if field.errors %}
                     <div class="text-danger small">{{ field.errors|striptags }}</div>
                 {% endif %}
@@ -81,4 +83,5 @@
         <p>Đã có tài khoản? <a href="{% url 'login' %}">Đăng nhập ngay</a></p>
     </div>
 </div>
+
 {% endblock %}
