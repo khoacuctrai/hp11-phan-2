@@ -1,26 +1,145 @@
 {% extends 'shop/base.html' %}
 {% block content %}
-<h2>Quản lý kho</h2>
-<table border="1" cellpadding="4" style="width:100%;border-collapse:collapse;">
-    <tr style="background:#eee;">
+<style>
+:root {
+    --main-bg: #171c28;
+    --main-bg-light: #21273a;
+    --header-gradient: linear-gradient(90deg, #263563 0%, #43519b 100%);
+    --text-main: #e7ebf0;
+    --text-secondary: #aab6c6;
+    --row-even: #232a3b;
+    --row-odd: #1a1f2e;
+    --low-stock-bg: #35240d;
+    --low-stock-text: #ffc940;
+    --btn-gradient: linear-gradient(90deg, #009688 0%, #26ffe6 100%);
+    --btn-gradient-hover: linear-gradient(90deg, #26ffe6 0%, #009688 100%);
+}
+body, .inventory-table { background: var(--main-bg); color: var(--text-main); }
+
+.inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 32px 0;
+    font-size: 1.07rem;
+    background: var(--main-bg-light);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(70, 100, 180, 0.15);
+}
+.inventory-table th, .inventory-table td {
+    padding: 13px 10px;
+    text-align: center;
+    border-bottom: 1px solid #23273c;
+}
+.inventory-table th {
+    background: var(--header-gradient);
+    color: #fff;
+    font-size: 1.09rem;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    border-bottom: 1.5px solid #334178;
+}
+.inventory-table tr.low-stock,
+.inventory-table tr.low-stock:nth-child(even),
+.inventory-table tr.low-stock:nth-child(odd) {
+    background: var(--low-stock-bg) !important;
+}
+.inventory-table tr.low-stock td {
+    color: var(--low-stock-text) !important;
+    font-weight: 600;
+}
+.inventory-table tr:nth-child(even):not(.low-stock) { background: var(--row-even); }
+.inventory-table tr:nth-child(odd):not(.low-stock) { background: var(--row-odd); }
+.inventory-table tr:last-child td { border-bottom: none; }
+.inventory-table td, .inventory-table th { transition: background 0.25s, color 0.2s; }
+
+.update-btn {
+    background: var(--btn-gradient);
+    color: #0d2221;
+    border: none;
+    padding: 7px 20px;
+    border-radius: 7px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.15s;
+    box-shadow: 0 2px 8px rgba(0,180,180,0.13);
+}
+.update-btn:hover {
+    background: var(--btn-gradient-hover);
+    color: #fff;
+    transform: translateY(-2px) scale(1.04);
+}
+input[type="number"] {
+    width: 70px;
+    padding: 6px 7px;
+    border: 1.2px solid #263563;
+    border-radius: 5px;
+    font-size: 1rem;
+    margin-right: 8px;
+    background: #20253a;
+    color: var(--text-main);
+    text-align: right;
+}
+input[type="number"]:focus {
+    outline: 2px solid #00ffe6;
+    border-color: #00ffe6;
+    background: #242b41;
+}
+
+@media (max-width: 700px) {
+    .inventory-table th, .inventory-table td {
+        font-size: 0.97rem;
+        padding: 8px 4px;
+    }
+    input[type="number"] { width: 45px; padding: 3px 3px; }
+    .update-btn { padding: 6px 10px; font-size: 0.92rem; }
+}
+</style>
+
+<h2 style="margin: 28px 0 18px 0; color: #2f9fff; font-size: 1.27rem; letter-spacing:1px; text-align:center;">
+    Quản lý kho hàng
+</h2>
+
+<table class="inventory-table">
+    <tr>
         <th>#</th>
-        <th>Tên sản phẩm</th>
-        <th>Danh mục</th>
+        <th>Sản phẩm</th>
+        <th>Dung lượng</th>
+        <th>Màu sắc</th>
         <th>Kho hiện tại</th>
         <th>Cập nhật tồn kho</th>
     </tr>
-    {% for p in products %}
-    <tr>
+    {% for v in variants %}
+    <tr class="{% if v.stock <= 5 %}low-stock{% endif %}">
         <td>{{ forloop.counter }}</td>
-        <td>{{ p.name }}</td>
-        <td>{{ p.get_category_display }}</td>
-        <td>{{ p.stock }}</td>
+        <td style="text-align:left;">{{ v.product.name }}</td>
         <td>
-            <form method="post" style="display:inline;">
+            {% if v.storage %}
+                {{ v.storage }}
+            {% else %}
+                <span style="color:var(--low-stock-text);">Không có cấu hình</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if v.color %}
+                {{ v.color.name }}
+            {% else %}
+                Không
+            {% endif %}
+        </td>
+        <td>
+            {{ v.stock }}
+            {% if v.stock <= 5 %}
+                <span style="color:var(--low-stock-text); font-size:13px; font-weight:500;">(Sắp hết)</span>
+            {% endif %}
+        </td>
+        <td>
+            <form method="post" style="display:flex;align-items:center;justify-content:center;gap:7px;">
                 {% csrf_token %}
-                <input type="hidden" name="product_id" value="{{ p.id }}">
-                <input type="number" name="stock" value="{{ p.stock }}" min="0" style="width:60px;">
-                <button type="submit">Cập nhật</button>
+                <input type="hidden" name="variant_id" value="{{ v.id }}">
+                <input type="number" name="stock" value="{{ v.stock }}" min="0">
+                <button class="update-btn" type="submit">Cập nhật</button>
             </form>
         </td>
     </tr>

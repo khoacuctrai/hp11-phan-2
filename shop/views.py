@@ -457,21 +457,21 @@ Các sản phẩm đã mua:
 
 
 
-class StockUpdateForm(forms.ModelForm):
+class VariantStockUpdateForm(forms.ModelForm):
     class Meta:
-        model = Product
+        model = ProductVariant
         fields = ['stock']
 
 @staff_member_required
 def inventory_management(request):
-    products = Product.objects.all().order_by('category', 'name')
+    variants = ProductVariant.objects.select_related('product', 'color').order_by('product__category', 'product__name', 'storage', 'color__name')
     if request.method == 'POST':
-        product_id = request.POST.get('product_id')
-        product = get_object_or_404(Product, id=product_id)
-        form = StockUpdateForm(request.POST, instance=product)
+        variant_id = request.POST.get('variant_id')
+        variant = get_object_or_404(ProductVariant, id=variant_id)
+        form = VariantStockUpdateForm(request.POST, instance=variant)
         if form.is_valid():
             form.save()
             return redirect('inventory_management')
     else:
-        form = StockUpdateForm()
-    return render(request, 'shop/inventory_management.html', {'products': products, 'form': form})
+        form = VariantStockUpdateForm()
+    return render(request, 'shop/inventory_management.html', {'variants': variants, 'form': form})

@@ -2,8 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-#định nghĩa cấu trúc dữ liệu
-# Loại sản phẩm
 CATEGORY_CHOICES = [
     ('iphone', 'iPhone'),
     ('macbook', 'MacBook'),
@@ -13,49 +11,42 @@ CATEGORY_CHOICES = [
     ('accessory', 'Phụ kiện'),
 ]
 
-# ------------------------------
-# 🟩 Sản phẩm
-# ------------------------------
 class Product(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     image = models.ImageField(upload_to='product_images/', blank=True, null=True)
     is_featured = models.BooleanField(default=False)
-    stock = models.PositiveIntegerField(default=0)
+    # KHÔNG cần trường stock ở Product nếu đã có ở Variant
+
     def __str__(self):
         return self.name
 
     def has_variants(self):
-        return self.category in dict(CATEGORY_CHOICES)
+        return self.variants.exists()
 
     def display_price(self):
         first_variant = self.variants.first()
         return first_variant.price if first_variant else 0
 
-
-class ProductVariant(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
-    storage = models.CharField(max_length=200)
-    price = models.IntegerField()    # Sửa từ FloatField thành IntegerField
-    color = models.ForeignKey('ProductColor', on_delete=models.CASCADE, related_name='variants', null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.product.name} - {self.storage} - {self.color.name if self.color else 'No color'}"
-
-
 class ProductColor(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='colors')
-    name = models.CharField(max_length=50)  # ví dụ: "Đen", "Trắng", "Xanh"
-    image = models.ImageField(upload_to='product_colors/')  # ảnh ứng với màu
+    name = models.CharField(max_length=50)
+    image = models.ImageField(upload_to='product_colors/')
 
     def __str__(self):
         return f"{self.product.name} - {self.name}"
 
+class ProductVariant(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
+    storage = models.CharField(max_length=200)
+    price = models.IntegerField()
+    color = models.ForeignKey(ProductColor, on_delete=models.CASCADE, related_name='variants', null=True, blank=True)
+    stock = models.PositiveIntegerField(default=0)
 
-# ------------------------------
-# 🟩 Giỏ hàng
-# ------------------------------
+    def __str__(self):
+        return f"{self.product.name} - {self.storage} - {self.color.name if self.color else 'No color'}"
+
 class CartItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cart_items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -72,17 +63,14 @@ class CartItem(models.Model):
         variant_info = f" ({self.variant.storage})" if self.variant else ""
         return f"{self.product.name}{variant_info} x {self.quantity} ({self.user.username})"
 
-
-# ------------------------------
-# 🟩 Bình luận và phản hồi
-# ------------------------------
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     content = models.TextField()
     likes = models.IntegerField(default=0)
     dislikes = models.IntegerField(default=0)
-    created_at = models.DateTimeField(default=timezone.now)  # ✅ thêm dòng này
+    created_at = models.DateTimeField(default=timezone.now)
+
     @property
     def total_likes(self):
         return self.likes
@@ -90,8 +78,6 @@ class Comment(models.Model):
     @property
     def total_dislikes(self):
         return self.dislikes
-
-
 
 class CommentReaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -101,15 +87,11 @@ class CommentReaction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'comment')  # Một người chỉ được phản ứng 1 lần
+        unique_together = ('user', 'comment')
 
     def __str__(self):
         return f"{self.user.username} {self.reaction} on comment {self.comment.id}"
 
-
-# ------------------------------
-# 🟩 Đơn hàng
-# ------------------------------
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -127,7 +109,6 @@ class Order(models.Model):
     def __str__(self):
         return f"Đơn hàng #{self.id} của {self.user.username}"
 
-
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -141,14 +122,6 @@ class OrderItem(models.Model):
         variant_info = f" ({self.variant.storage})" if self.variant else ""
         return f"{self.product.name}{variant_info} x {self.quantity}"
 
-
-
-
-
-
-# ------------------------------
-# 🟩 Góp ý / Khiếu nại
-# ------------------------------
 class Feedback(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedbacks')
     message = models.TextField()
@@ -158,9 +131,6 @@ class Feedback(models.Model):
     def __str__(self):
         label = "Khiếu nại" if self.is_complaint else "Góp ý"
         return f"{label} từ {self.user.username}"
-
-
-
 
 class CarouselImage(models.Model):
     title = models.CharField("Tiêu đề", max_length=100, blank=True)

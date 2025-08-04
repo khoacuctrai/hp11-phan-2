@@ -6,7 +6,9 @@ from .models import Feedback
 #quản lí form nhập biễu mẫu
 #Định nghĩa các Form (biểu mẫu), ví dụ form góp ý, form đăng ký, form mua hàng...
 
-
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import ProductVariant
 
 class SignupForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -48,3 +50,22 @@ class FeedbackForm(forms.ModelForm):
         }
 
 
+
+class VariantStockUpdateForm(forms.ModelForm):
+    class Meta:
+        model = ProductVariant
+        fields = ['stock']
+
+@staff_member_required
+def inventory_management(request):
+    variants = ProductVariant.objects.select_related('product', 'color').order_by('product__category', 'product__name', 'storage', 'color__name')
+    if request.method == 'POST':
+        variant_id = request.POST.get('variant_id')
+        variant = get_object_or_404(ProductVariant, id=variant_id)
+        form = VariantStockUpdateForm(request.POST, instance=variant)
+        if form.is_valid():
+            form.save()
+            return redirect('inventory_management')
+    else:
+        form = VariantStockUpdateForm()
+    return render(request, 'shop/inventory_management.html', {'variants': variants, 'form': form})
