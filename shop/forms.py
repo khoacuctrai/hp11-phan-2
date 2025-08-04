@@ -46,3 +46,5 @@ class FeedbackForm(forms.ModelForm):
             'is_complaint': forms.RadioSelect(choices=[(True, 'Khiếu nại'), (False, 'Góp ý')]),
             'message': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Nội dung...'}),
         }
+
+

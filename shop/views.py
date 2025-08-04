@@ -12,6 +12,7 @@ from .models import (
     Product, ProductVariant, CartItem, Comment,
     Order, OrderItem, Feedback, CommentReaction, ProductColor, CarouselImage
 )
+from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_exempt
 import qrcode
 import io
@@ -20,6 +21,7 @@ from django.urls import reverse
 from django.core.mail import send_mail
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils import timezone
+from django import forms
 #Xử lý logic cho từng request, trả về response
 # Chia nhóm cho carousel
 def chunk_products(lst, size):
@@ -452,3 +454,24 @@ Các sản phẩm đã mua:
     message += "\nĐơn hàng của bạn sẽ sớm được xác nhận và giao hàng.\nTrân trọng!"
 
     send_mail(subject, message, None, [email])
+
+
+
+class StockUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ['stock']
+
+@staff_member_required
+def inventory_management(request):
+    products = Product.objects.all().order_by('category', 'name')
+    if request.method == 'POST':
+        product_id = request.POST.get('product_id')
+        product = get_object_or_404(Product, id=product_id)
+        form = StockUpdateForm(request.POST, instance=product)
+        if form.is_valid():
+            form.save()
+            return redirect('inventory_management')
+    else:
+        form = StockUpdateForm()
+    return render(request, 'shop/inventory_management.html', {'products': products, 'form': form})

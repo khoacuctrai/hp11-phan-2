@@ -22,7 +22,7 @@ class Product(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     image = models.ImageField(upload_to='product_images/', blank=True, null=True)
     is_featured = models.BooleanField(default=False)
-
+    stock = models.PositiveIntegerField(default=0)
     def __str__(self):
         return self.name
 

@@ -1,0 +1,29 @@
+{% extends 'shop/base.html' %}
+{% block content %}
+<h2>Quản lý kho</h2>
+<table border="1" cellpadding="4" style="width:100%;border-collapse:collapse;">
+    <tr style="background:#eee;">
+        <th>#</th>
+        <th>Tên sản phẩm</th>
+        <th>Danh mục</th>
+        <th>Kho hiện tại</th>
+        <th>Cập nhật tồn kho</th>
+    </tr>
+    {% for p in products %}
+    <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ p.name }}</td>
+        <td>{{ p.get_category_display }}</td>
+        <td>{{ p.stock }}</td>
+        <td>
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="product_id" value="{{ p.id }}">
+                <input type="number" name="stock" value="{{ p.stock }}" min="0" style="width:60px;">
+                <button type="submit">Cập nhật</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

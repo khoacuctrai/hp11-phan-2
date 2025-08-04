@@ -43,7 +43,7 @@ urlpatterns = [
 
     # ✅ Góp ý
     path('feedback/', views.feedback_view, name='feedback'),
-
+     path('inventory/', views.inventory_management, name='inventory_management'),
     # ✅ Tìm kiếm
     path('search/', views.search_products, name='search_products'),
 ]
