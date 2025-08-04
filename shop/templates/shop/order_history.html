@@ -2,41 +2,199 @@
 {% block title %}Lịch sử đơn hàng{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <h2 class="text-white text-center mb-4">🧾 Lịch sử đơn hàng</h2>
+<style>
+  body {
+    background: #191c1f;
+  }
+  .order-history-container {
+    max-width: 680px;
+    margin: 50px auto 32px auto;
+    padding: 0 8px;
+  }
+  .order-card {
+    background: linear-gradient(110deg, #23272b 80%, #20222a 100%);
+    border-radius: 20px;
+    box-shadow: 0 6px 32px 0 rgba(38,115,234,0.08), 0 1.5px 6px 0 rgba(50,82,168,0.04);
+    margin-bottom: 32px;
+    transition: box-shadow .33s cubic-bezier(.38,.7,.47,1.03), transform .21s;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 1.2s cubic-bezier(.42,.77,.4,1.09);
+  }
+  .order-card:hover {
+    box-shadow: 0 12px 40px 0 rgba(38,115,234,0.18), 0 3px 16px 0 rgba(50,82,168,0.11);
+    transform: translateY(-3px) scale(1.01);
+  }
+  .order-card .card-header {
+    background: linear-gradient(90deg, #2e6cb9 0, #3c8bb9 100%);
+    color: #fff;
+    border-radius: 20px 20px 0 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 18px 26px 12px 26px;
+    letter-spacing: 0.01em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: none;
+  }
+  .order-card .card-body {
+    padding: 20px 26px 24px 26px;
+  }
+  .order-card strong, .order-card h6, .order-card h2 {
+    color: #38ccfd;
+  }
+  .order-card .order-id {
+    font-size: 1.09rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .order-card .order-date {
+    font-size: 0.99rem;
+    font-weight: 400;
+    color: #e0e7ee;
+  }
+  .order-card .customer-info p {
+    margin-bottom: 0.25rem;
+    color: #e6f0fd;
+    font-size: 1.04rem;
+  }
+  .order-card .customer-info strong {
+    color: #7edaff;
+    font-weight: 600;
+  }
+  .order-card hr {
+    border-color: #244b6e;
+    opacity: .6;
+  }
+  .order-card h6 {
+    font-size: 1.07rem;
+    margin-bottom: 0.6rem;
+    color: #8bd7ff;
+    font-weight: 700;
+    letter-spacing: .03em;
+  }
+  .order-card .product-list {
+    padding-left: 0;
+    margin-bottom: 0;
+  }
+  .order-card .product-list li {
+    background: rgba(37,63,90,0.7);
+    color: #f5fcff;
+    border: 1px solid #233850;
+    border-radius: 7px;
+    padding: 8px 14px;
+    margin-bottom: 7px;
+    font-size: 1.01rem;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: fadeInProduct .7s;
+  }
+  @keyframes fadeInProduct {
+    from { opacity: 0; transform: translateY(10px);}
+    to { opacity: 1; transform: translateY(0);}
+  }
+  .order-card .total-price-row {
+    margin-top: 17px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+  }
+  .order-card .total-price-label {
+    color: #89b6f5;
+    font-size: 1.05rem;
+  }
+  .order-card .total-price-value {
+    font-size: 1.38rem;
+    font-weight: 700;
+    color: #ffde48;
+    background: linear-gradient(90deg, #fcf7ce 20%, #ffe599 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: .02em;
+    transition: color .3s;
+  }
+  /* Empty state */
+  .empty-orders {
+    color: #b9dbfa;
+    text-align: center;
+    margin-top: 70px;
+    font-size: 1.16rem;
+    font-style: italic;
+    animation: fadeInEmpty .7s;
+  }
+  @keyframes fadeInUp {
+    from {opacity:0; transform:translateY(34px);}
+    to {opacity:1; transform:translateY(0);}
+  }
+  @keyframes fadeInEmpty {
+    from {opacity:0; transform:scale(.97);}
+    to {opacity:1; transform:scale(1);}
+  }
+  /* Responsive */
+  @media (max-width: 600px) {
+    .order-card .card-header, .order-card .card-body {padding: 13px 6vw;}
+    .order-card {border-radius: 15px;}
+    .order-card .card-header {font-size: .97rem;}
+    .order-card .card-body {font-size: .97rem;}
+  }
+</style>
+
+<div class="order-history-container">
+  <h2 class="text-center mb-4" style="color:#5bc0ff;font-weight:600;">
+    🧾 Lịch sử đơn hàng
+  </h2>
 
   {% if orders %}
     {% for order in orders %}
-      <div class="card bg-dark text-white mb-4 shadow">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <strong>🛍️ Đơn hàng #{{ order.id }}</strong>
-          <span>{{ order.created_at|date:"d/m/Y H:i" }}</span>
+      <div class="order-card">
+        <div class="card-header">
+          <span class="order-id">
+            <span style="font-size:1.19em;">🛍️</span> Đơn hàng #{{ order.id }}
+          </span>
+          <span class="order-date">{{ order.created_at|date:"d/m/Y H:i" }}</span>
         </div>
         <div class="card-body">
-          <p><strong>👤 Họ tên:</strong> {{ order.full_name }}</p>
-          <p><strong>📧 Email:</strong> {{ order.email }}</p>
-          <p><strong>📞 SĐT:</strong> {{ order.phone }}</p>
-          <p><strong>📍 Địa chỉ:</strong> {{ order.address }}</p>
-
-          <hr class="border-light">
-
-          <h6 class="mb-2">🛒 Sản phẩm:</h6>
-          <ul class="list-group list-group-flush">
+          <div class="customer-info mb-3">
+            <p><strong>👤</strong> {{ order.full_name }}</p>
+            <p><strong>📧</strong> {{ order.email }}</p>
+            <p><strong>📞</strong> {{ order.phone }}</p>
+            <p><strong>📍</strong> {{ order.address }}</p>
+          </div>
+          <hr>
+          <h6>🛒 Sản phẩm:</h6>
+          <ul class="product-list">
             {% for item in order.items.all %}
-              <li class="list-group-item bg-dark text-white border-secondary">
-                {{ item.product.name }} × {{ item.quantity }}
+              <li>
+                <span>{{ item.product.name }}</span>
+                <span>× {{ item.quantity }}</span>
               </li>
             {% endfor %}
           </ul>
-
-          <div class="mt-3 text-end">
-            <strong class="text-success">Tổng tiền: {{ order.total_price|floatformat:0 }} đ</strong>
+          <div class="total-price-row">
+            <span class="total-price-label">Tổng tiền:</span>
+            <span class="total-price-value money-format">{{ order.total_price }}</span>
+            <span class="total-price-label">đ</span>
           </div>
         </div>
       </div>
     {% endfor %}
   {% else %}
-    <p class="text-white text-center">Bạn chưa có đơn hàng nào.</p>
+    <div class="empty-orders">Bạn chưa có đơn hàng nào.</div>
   {% endif %}
 </div>
+
+<script>
+  // Định dạng tiền Việt tự động cho các thẻ có class 'money-format'
+  document.querySelectorAll('.money-format').forEach(function(el){
+    let num = el.textContent.replace(/[^0-9.]/g, '');
+    if(num) {
+      el.textContent = Number(num).toLocaleString('vi-VN');
+    }
+  });
+</script>
 {% endblock %}

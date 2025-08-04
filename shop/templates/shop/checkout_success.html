@@ -1,5 +1,86 @@
 {% extends 'shop/base.html' %}
+{% block title %}Đặt hàng thành công{% endblock %}
 {% block content %}
-  <h2>✅ Đặt hàng thành công!</h2>
-  <p>Đơn hàng #{{ order.id }} đã được ghi nhận.</p>
+<style>
+  .order-success-wrapper {
+    max-width: 480px;
+    margin: 70px auto 50px auto;
+    background: linear-gradient(120deg, #22252a 80%, #191a1c 100%);
+    border-radius: 22px;
+    box-shadow: 0 6px 32px #44f47e29, 0 2px 8px #0005;
+    padding: 42px 34px 35px 34px;
+    text-align: center;
+    animation: fadeSuccess .6s;
+  }
+  @keyframes fadeSuccess {
+    from { opacity: 0; transform: translateY(50px);}
+    to   { opacity: 1; transform: none;}
+  }
+  .order-success-icon {
+    font-size: 3.6rem;
+    color: #44f47e;
+    margin-bottom: 18px;
+    text-shadow: 0 2px 18px #44f47e33;
+    animation: pop 0.7s;
+  }
+  @keyframes pop {
+    0% { transform: scale(0.6);}
+    70% { transform: scale(1.15);}
+    100% { transform: scale(1);}
+  }
+  .order-success-title {
+    color: #44f47e;
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 17px;
+    letter-spacing: .02em;
+    text-shadow: 0 2px 8px #44f47e18;
+  }
+  .order-success-id {
+    font-size: 1.16rem;
+    color: #ffe066;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .order-success-desc {
+    color: #d8d8d8;
+    font-size: 1.04rem;
+    margin-bottom: 12px;
+  }
+  .btn-home {
+    margin-top: 18px;
+    background: linear-gradient(90deg, #ffe066 65%, #fff59d 100%);
+    color: #22262a;
+    font-weight: bold;
+    border: none;
+    border-radius: 9px;
+    padding: 9px 30px;
+    font-size: 1.08rem;
+    box-shadow: 0 2px 9px #ffe06620;
+    transition: background .13s, color .13s, transform .15s;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-home:hover {
+    background: linear-gradient(90deg, #ffe066 70%, #44f47e 100%);
+    color: #191a1b;
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px #ffe0662c;
+  }
+</style>
+
+<div class="order-success-wrapper">
+  <div class="order-success-icon">
+    <i class="fas fa-check-circle"></i>
+  </div>
+  <div class="order-success-title">Đặt hàng thành công!</div>
+  <div class="order-success-id">Mã đơn hàng #{{ order.id }}</div>
+  <div class="order-success-desc">
+    Cảm ơn bạn đã tin tưởng mua sắm.<br>
+    Đơn hàng của bạn đã được ghi nhận và sẽ xử lý sớm nhất.<br>
+    Chúng tôi sẽ liên hệ xác nhận qua điện thoại/email!
+  </div>
+  <a href="{% url 'home' %}" class="btn-home">Về trang chủ</a>
+</div>
 {% endblock %}

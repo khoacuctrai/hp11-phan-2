@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+#định nghĩa cấu trúc dữ liệu
 # Loại sản phẩm
 CATEGORY_CHOICES = [
     ('iphone', 'iPhone'),
@@ -36,11 +37,12 @@ class Product(models.Model):
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
     storage = models.CharField(max_length=200)
-    price = models.FloatField()
+    price = models.IntegerField()    # Sửa từ FloatField thành IntegerField
     color = models.ForeignKey('ProductColor', on_delete=models.CASCADE, related_name='variants', null=True, blank=True)
 
     def __str__(self):
         return f"{self.product.name} - {self.storage} - {self.color.name if self.color else 'No color'}"
+
 
 class ProductColor(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='colors')
@@ -156,3 +158,19 @@ class Feedback(models.Model):
     def __str__(self):
         label = "Khiếu nại" if self.is_complaint else "Góp ý"
         return f"{label} từ {self.user.username}"
+
+
+
+
+class CarouselImage(models.Model):
+    title = models.CharField("Tiêu đề", max_length=100, blank=True)
+    image = models.ImageField("Ảnh", upload_to='carousel/')
+    caption = models.CharField("Chú thích", max_length=255, blank=True)
+    is_active = models.BooleanField("Hiển thị", default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title or f"Ảnh #{self.id}"

@@ -1,8 +1,7 @@
- {% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
- 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sản phẩm</title>
@@ -11,120 +10,171 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Custom CSS -->
   <link rel="stylesheet" href="{% static 'styles.css' %}">
-
   <style>
-  body {
-    background-color: #2e2e2e;
-    color: #f8f9fa;
-    font-family: 'Segoe UI', sans-serif;
-  }
-
-  .navbar {
-    background: rgba(30, 30, 30, 0.75);
-    backdrop-filter: blur(12px);
-    border-radius: 0 0 20px 20px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-    transition: all 0.3s ease-in-out;
-  }
-
-  .navbar-brand {
-    font-size: 1.7rem;
-    font-weight: 700;
-    color: #ff4da6;
-    transition: 0.3s ease;
-  }
-
-  .navbar-brand:hover {
-    color: #ff80bf;
-    transform: scale(1.05);
-  }
-
-  .nav-link {
-    color: #f8f9fa;
-    margin-right: 10px;
-    transition: 0.3s ease;
-  }
-
-  .nav-link:hover {
-    color: #ff80bf;
-    text-shadow: 0 0 5px #ff80bf;
-  }
-
-  .dropdown-menu {
-    border-radius: 10px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-  }
-
-  .dropdown-menu a {
-    color: #333;
-    transition: 0.3s;
-  }
-
-  .dropdown-menu a:hover {
-    background: #f8f9fa;
-  }
-
-  .btn-outline-light.btn-sm:hover {
-    background: #ff80bf;
-    color: #fff;
-    border-color: #ff80bf;
-  }
-
-  .btn-outline-light.btn-sm:focus {
-    box-shadow: 0 0 0 0.2rem rgba(255, 128, 191, 0.4);
-  }
-
-  .btn-cart {
-    transition: transform 0.3s ease, background-color 0.3s ease;
-  }
-
-  .btn-cart:hover {
-    transform: scale(1.05);
-    background-color: #ff80bf;
-    color: #fff;
-    border-color: #ff80bf;
-  }
-
-  /* Search dropdown */
-  #searchForm {
-    overflow: hidden;
-    max-height: 0;
-    opacity: 0;
-    transition: all 0.4s ease;
-    pointer-events: none;
-  }
-
-  #searchForm.show {
-    max-height: 100px;
-    opacity: 1;
-    pointer-events: auto;
-  }
+    body {
+      background-color: #17191d;
+      color: #f8f9fa;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .navbar {
+      background: rgba(30, 30, 30, 0.82);
+      backdrop-filter: blur(12px);
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.34);
+      transition: all 0.3s;
+      font-size: 1.08rem;
+    }
+    .navbar-brand {
+      font-size: 1.7rem;
+      font-weight: 900;
+      color: #ffe15d;
+      letter-spacing: .06em;
+      transition: 0.3s;
+      text-shadow: 0 2px 10px #3c1a1278;
+    }
+    .navbar-brand:hover {
+      color: #ffea81;
+      transform: scale(1.05);
+    }
+    .nav-link {
+      color: #f8f9fa;
+      margin-right: 12px;
+      font-weight: 500;
+      letter-spacing: .01em;
+      transition: 0.2s;
+      border-radius: 7px;
+      padding: 8px 15px !important;
+    }
+    .nav-link.active, .nav-link:focus, .nav-link:hover {
+      color: #ffe15d;
+      background: rgba(255,225,93,0.07);
+      text-shadow: 0 0 7px #ffe15d5e;
+      font-weight: 700;
+    }
+    .dropdown-menu {
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.36);
+      background: #22232d;
+    }
+    .dropdown-menu a {
+      color: #f5d00a;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .dropdown-menu a:hover {
+      background: #ffe15d1a;
+      color: #22262a;
+    }
+    .btn-outline-light.btn-sm:hover,
+    .btn-outline-light.btn-sm:focus {
+      background: #ffe15d;
+      color: #22262a;
+      border-color: #ffe15d;
+      font-weight: 700;
+      box-shadow: 0 0 0 0.14rem #ffe15d5a;
+    }
+    .btn-cart {
+      transition: transform 0.3s, background-color 0.3s;
+      border-radius: 8px;
+      margin-left: 10px;
+      font-weight: 700;
+    }
+    .btn-cart:hover {
+      transform: scale(1.06);
+      background-color: #ffe15d;
+      color: #22262a;
+      border-color: #ffe15d;
+    }
+    /* Search dropdown */
+    #searchForm {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: all 0.36s cubic-bezier(.43,.19,.61,1.21);
+      pointer-events: none;
+    }
+    #searchForm.show {
+      max-height: 120px;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .search-wrapper .form-control {
+      background: #20252c;
+      color: #fff;
+      border-radius: 9px;
+      border: 1.2px solid #3a414b;
+      font-size: 1.05rem;
+    }
+    .search-wrapper .form-control:focus {
+      border-color: #ffe15d;
+      background: #25272e;
+      color: #fff;
+      box-shadow: 0 0 0 0.18rem #ffe15d42;
+    }
+    /* Category Bar */
+    .category-bar {
+      background: rgba(30, 30, 30, 0.72);
+      border-radius: 18px;
+      margin: 20px 0 28px 0;
+      padding: 20px 10px 15px 10px;
+      box-shadow: 0 4px 22px 0 rgba(255,225,93,0.08);
+    }
+    .category-item {
+      min-width: 110px;
+      max-width: 120px;
+      background: #23232c;
+      border-radius: 12px;
+      box-shadow: 0 2px 9px #fff3;
+      padding: 12px 8px 8px 8px;
+      transition: transform 0.21s, box-shadow 0.18s, background 0.21s;
+    }
+    .category-item:hover {
+      background: #ffe15d33;
+      color: #22262a !important;
+      transform: scale(1.04) translateY(-3px);
+      box-shadow: 0 7px 26px 0 #ffe15d3a;
+      text-decoration: none;
+    }
+    .category-item img {
+      max-height: 80px;
+      transition: filter 0.18s;
+      filter: drop-shadow(0 1px 8px #ffe15d22);
+    }
+    .category-item p {
+      margin-bottom: 0;
+      font-weight: 700;
+      font-size: 1.09rem;
+      letter-spacing: .01em;
+      color: #ffe15d;
+      text-shadow: 0 1px 5px #ffe15d18;
+    }
+    @media (max-width: 700px) {
+      .navbar, .category-bar { border-radius: 0; }
+      .category-item { min-width: 80px; max-width: 100px; padding: 10px 4px 6px 4px;}
+      .category-item img { max-height: 50px; }
+      .category-item p { font-size: 0.92rem;}
+    }
   </style>
 </head>
-
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
   <div class="container-fluid">
     <a class="navbar-brand" href="{% url 'home' %}">Khoazone</a>
-
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
       <span class="navbar-toggler-icon"></span>
     </button>
-
     <div class="collapse navbar-collapse" id="mainNavbar">
       <!-- Nav Links -->
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link" href="{% url 'iphone_products' %}">iPhone</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'macbook_products' %}">MacBook</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'ipad_products' %}">iPad</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'watch_products' %}">Watch</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'audio_products' %}">Tai nghe</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'accessory_products' %}">Phụ kiện</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'feedback' %}">Góp ý / Khiếu nại</a></li>
+        <li class="nav-item"><a class="nav-link{% if request.resolver_match.url_name == 'iphone_products' %} active{% endif %}" href="{% url 'iphone_products' %}">iPhone</a></li>
+        <li class="nav-item"><a class="nav-link{% if request.resolver_match.url_name == 'macbook_products' %} active{% endif %}" href="{% url 'macbook_products' %}">MacBook</a></li>
+        <li class="nav-item"><a class="nav-link{% if request.resolver_match.url_name == 'ipad_products' %} active{% endif %}" href="{% url 'ipad_products' %}">iPad</a></li>
+        <li class="nav-item"><a class="nav-link{% if request.resolver_match.url_name == 'watch_products' %} active{% endif %}" href="{% url 'watch_products' %}">Watch</a></li>
+        <li class="nav-item"><a class="nav-link{% if request.resolver_match.url_name == 'audio_products' %} active{% endif %}" href="{% url 'audio_products' %}">Tai nghe</a></li>
+        <li class="nav-item"><a class="nav-link{% if request.resolver_match.url_name == 'accessory_products' %} active{% endif %}" href="{% url 'accessory_products' %}">Phụ kiện</a></li>
+        <li class="nav-item"><a class="nav-link{% if request.resolver_match.url_name == 'feedback' %} active{% endif %}" href="{% url 'feedback' %}">Góp ý / Khiếu nại</a></li>
       </ul>
-
       <!-- Search -->
       <div class="search-wrapper position-relative me-3">
         <button class="btn btn-outline-light btn-sm" id="toggleSearch" type="button">
@@ -138,7 +188,6 @@
           </div>
         </form>
       </div>
-
       <!-- Tài khoản -->
       <div class="dropdown me-3">
         <button class="btn btn-light dropdown-toggle btn-sm" type="button" id="authDropdown"
@@ -162,48 +211,43 @@
           {% endif %}
         </ul>
       </div>
-
       <!-- Giỏ hàng -->
       <a href="{% url 'cart' %}" class="btn btn-outline-light btn-sm btn-cart">🛒 Giỏ hàng</a>
     </div>
   </div>
 </nav>
 
-
-
-<!-- Carousel -->
+<!-- Carousel (nếu cần) -->
 {% include 'shop/carousel.html' %}
+
+<!-- Category Bar đồng bộ -->
 <div class="category-bar d-flex justify-content-center flex-wrap gap-3 py-4">
   <a href="{% url 'iphone_products' %}" class="category-item text-center text-decoration-none text-white">
-    <img src="https://product.hstatic.net/200000348419/product/16_hero_8989f185e9cf4a9d8165236eeaa97c74_master.png" alt="iPhone" style="max-height: 100px;">
+    <img src="https://product.hstatic.net/200000348419/product/16_hero_8989f185e9cf4a9d8165236eeaa97c74_master.png" alt="iPhone">
     <p class="mt-2">iPhone</p>
   </a>
-
   <a href="{% url 'macbook_products' %}" class="category-item text-center text-decoration-none text-white">
-    <img src="https://product.hstatic.net/200000348419/product/macbook_air_13_inch_m1_2020_silver_0_61ab8f169379480c894e67ecd821d448_large.png" alt="Mac" style="max-height: 100px;">
+    <img src="https://product.hstatic.net/200000348419/product/macbook_air_13_inch_m1_2020_silver_0_61ab8f169379480c894e67ecd821d448_large.png" alt="Mac">
     <p class="mt-2">Mac</p>
   </a>
-
   <a href="{% url 'ipad_products' %}" class="category-item text-center text-decoration-none text-white">
-    <img src="https://bizweb.dktcdn.net/thumb/large/100/444/581/products/1-d7546ef2-3d2c-4c82-ab9d-21eb44127acf.png?v=1720253464613" alt="iPad" style="max-height: 100px;">
+    <img src="https://bizweb.dktcdn.net/thumb/large/100/444/581/products/1-d7546ef2-3d2c-4c82-ab9d-21eb44127acf.png?v=1720253464613" alt="iPad">
     <p class="mt-2">iPad</p>
   </a>
-
   <a href="{% url 'watch_products' %}" class="category-item text-center text-decoration-none text-white">
-    <img src="https://cdn.tgdd.vn/Products/Images/7077/316008/s16/t%C3%A1ch%20n%E1%BB%81n%20site%2016%20(2)-650x650.png" alt="Watch" style="max-height: 100px;">
+    <img src="https://cdn.tgdd.vn/Products/Images/7077/316008/s16/t%C3%A1ch%20n%E1%BB%81n%20site%2016%20(2)-650x650.png" alt="Watch">
     <p class="mt-2">Watch</p>
   </a>
-
   <a href="{% url 'audio_products' %}" class="category-item text-center text-decoration-none text-white">
-    <img src="https://product.hstatic.net/200000348419/product/airpods-max-2024-0_8858229875d4450d8ddd918247a71f54.png" alt="Tai nghe, loa" style="max-height: 100px;">
+    <img src="https://product.hstatic.net/200000348419/product/airpods-max-2024-0_8858229875d4450d8ddd918247a71f54.png" alt="Tai nghe, loa">
     <p class="mt-2">Tai nghe, loa</p>
   </a>
-
   <a href="{% url 'accessory_products' %}" class="category-item text-center text-decoration-none text-white">
-    <img src="https://cdn.tgdd.vn/Products/Images/9499/230315/s16/adapter-sac-type-c-20w-cho-iphone-ipad-apple-mhje3-101021-023343-650x650.png" alt="Phụ kiện" style="max-height: 100px;">
+    <img src="https://cdn.tgdd.vn/Products/Images/9499/230315/s16/adapter-sac-type-c-20w-cho-iphone-ipad-apple-mhje3-101021-023343-650x650.png" alt="Phụ kiện">
     <p class="mt-2">Phụ kiện</p>
   </a>
 </div>
+
 <!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>

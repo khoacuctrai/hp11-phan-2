@@ -3,7 +3,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from .models import Comment
 from .models import Feedback
+#quản lí form nhập biễu mẫu
 #Định nghĩa các Form (biểu mẫu), ví dụ form góp ý, form đăng ký, form mua hàng...
+
+
+
 class SignupForm(UserCreationForm):
     email = forms.EmailField(required=True)
 

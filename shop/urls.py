@@ -3,10 +3,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from . import views
-
+#Điều hướng URL đến view.
 urlpatterns = [
     # Trang chủ
     path('', views.home, name='home'),
+    
 
     # ✅ Auth
     path('signup/', views.signup_view, name='signup'),
@@ -24,6 +25,7 @@ urlpatterns = [
     # ✅ Đơn hàng
     path('checkout/', views.checkout, name='checkout'),
     path('order-history/', views.order_history, name='order_history'),
+    path('cart/qr-payment/', views.qr_payment, name='qr_payment'),
 
     # ✅ Like / Dislike bình luận
     path('comment/<int:comment_id>/<str:reaction_type>/', views.react_to_comment, name='react_to_comment'),
@@ -37,6 +39,7 @@ urlpatterns = [
     path('watch/', views.watch_products, name='watch_products'),
     path('audio/', views.audio_products, name='audio_products'),
     path('accessory/', views.accessory_products, name='accessory_products'),
+    
 
     # ✅ Góp ý
     path('feedback/', views.feedback_view, name='feedback'),

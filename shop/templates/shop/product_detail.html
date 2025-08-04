@@ -1,172 +1,328 @@
-  {% extends 'shop/base.html' %}
-  {% block title %}{{ product.name }} - Chi tiết sản phẩm{% endblock %}
+{% extends 'shop/base.html' %}
+{% block title %}{{ product.name }} - Chi tiết sản phẩm{% endblock %}
 
-  {% block content %}
-  <div class="container mt-4">
-    <!-- Thông báo -->
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
-        </div>
-      {% endfor %}
-    {% endif %}
+{% block content %}
+<style>
+  body { background: #191c1f; }
+  .product-detail-container {
+    max-width: 980px;
+    margin: 35px auto 0 auto;
+    padding: 0 10px 60px 10px;
+  }
+  .product-main-card {
+    background: linear-gradient(100deg, #22282f 85%, #242c38 100%);
+    border-radius: 28px;
+    box-shadow: 0 7px 40px 0 rgba(46,165,252,0.13), 0 2px 10px 0 rgba(90,82,168,0.09);
+    padding: 35px 30px 30px 30px;
+    margin-bottom: 38px;
+    animation: fadeInUp 1s cubic-bezier(.42,.77,.4,1.09);
+  }
+  @keyframes fadeInUp {
+    from {opacity:0;transform:translateY(44px);}
+    to {opacity:1;transform:translateY(0);}
+  }
+  .product-img-box img {
+    border-radius: 18px;
+    box-shadow: 0 3px 18px 0 rgba(0,0,0,0.22);
+    max-height: 350px;
+    background: #232323;
+    object-fit: contain;
+    width: 100%;
+    transition: box-shadow .23s;
+  }
+  .product-img-box img:hover {
+    box-shadow: 0 8px 36px 0 rgba(81,214,255,0.12);
+  }
+  .product-title {
+    color: #ffd85d;
+    font-weight: 700;
+    font-size: 2rem;
+    margin-bottom: 16px;
+    letter-spacing: 0.03em;
+    text-shadow: 0 1px 6px #1115;
+  }
+  .form-label, label, select, input, .form-select, .form-control {
+    font-size: 1.07rem;
+  }
+  .form-select, .form-control {
+    border-radius: 9px !important;
+    background: #222d36;
+    color: #ffefae;
+    border: 1.5px solid #2b3d4d;
+    margin-bottom: 6px;
+  }
+  .form-select:focus, .form-control:focus {
+    border-color: #38ccfd;
+    background: #233144;
+    color: #fff;
+    outline: none;
+  }
+  .btn-main {
+    background: linear-gradient(95deg, #facc15 0%, #ffc947 100%);
+    color: #2c2534;
+    border-radius: 10px;
+    padding: 11px 36px;
+    font-weight: 700;
+    font-size: 1.13rem;
+    box-shadow: 0 3px 14px 0 rgba(255,214,90,0.18);
+    transition: all 0.18s;
+    border: none;
+  }
+  .btn-main:hover {
+    background: linear-gradient(95deg, #ffe187 0%, #facc15 100%);
+    color: #24262f;
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 6px 25px 0 rgba(255,214,90,0.23);
+  }
+  .product-price, .text-price {
+    font-size: 1.7rem;
+    font-weight: bold;
+    color: #ffe066;
+    text-shadow: 0 1px 8px #18150023;
+    letter-spacing: 0.04em;
+    margin-bottom: 5px;
+  }
+  .product-section-label {
+    color: #56d1fd;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+    letter-spacing: 0.02em;
+  }
+  .bg-comment {
+    background: linear-gradient(100deg, #23282d 80%, #2a3746 100%);
+    border-radius: 16px;
+    box-shadow: 0 2px 13px 0 rgba(0,0,0,0.09);
+    padding: 22px 20px 18px 20px;
+  }
+  .btn-pink {
+    background: linear-gradient(92deg, #fc87c7, #ff66b2);
+    color: white;
+    border-radius: 9px;
+    padding: 8px 26px;
+    font-weight: 600;
+    border: none;
+    box-shadow: 0 2px 8px 0 rgba(255,102,178,0.09);
+    transition: background .23s;
+  }
+  .btn-pink:hover {
+    background: linear-gradient(90deg, #ff66b2, #fc87c7);
+    color: #fff;
+  }
 
-    <div class="row">
-      <!-- Ảnh sản phẩm -->
-      <div class="col-md-6 mb-3">
-        <img id="product-image" src="{{ product.image.url }}" class="img-fluid rounded shadow" alt="{{ product.name }}">
+  /* Related Products (Gợi ý sản phẩm) */
+  .related-card {
+    background: #fdfcee;
+    border-radius: 18px;
+    box-shadow: 0 1px 9px 0 #ffe06620;
+    overflow: hidden;
+    transition: box-shadow .21s, transform .18s;
+    border: 1.6px solid #f5e6a2;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+  }
+  .related-card:hover {
+    box-shadow: 0 8px 28px 0 #ffe06634, 0 3px 16px 0 #ffea9165;
+    border-color: #ffe066;
+    transform: translateY(-3px) scale(1.03);
+  }
+  .related-card img {
+    height: 148px;
+    object-fit: contain;
+    background: #fffde7;
+    border-bottom: 1px solid #f7ecd3;
+    padding: 12px 0;
+  }
+  .related-title {
+    color: #2e3c44;
+    font-weight: 700;
+    font-size: 1.1rem;
+    min-height: 2.3em;
+    margin-bottom: 8px;
+  }
+  .related-price {
+    font-size: 1.26rem;
+    color: #e1602b;
+    font-weight: bold;
+    letter-spacing: .01em;
+    margin-bottom: 5px;
+  }
+  .btn-related {
+    background: #ffe066;
+    color: #2c2738;
+    font-weight: 700;
+    font-size: 1rem;
+    border-radius: 7px;
+    padding: 7px 23px;
+    margin-top: 5px;
+    border: none;
+    transition: background .14s, color .13s, transform .14s;
+    box-shadow: 0 2px 8px #ffe06621;
+    display: inline-block;
+  }
+  .btn-related:hover, .btn-related:focus {
+    background: #ffd25c;
+    color: #191a22;
+    transform: scale(1.06);
+    box-shadow: 0 6px 15px #ffe06631;
+    text-decoration: none;
+  }
+  @media (max-width: 900px) {
+    .product-main-card { padding: 20px 8px 18px 8px; }
+    .product-img-box img { max-height: 270px;}
+    .related-card { border-radius: 10px;}
+    .related-card img { height: 80px;}
+    .related-title { font-size: .98rem;}
+    .related-price { font-size: 1.05rem;}
+  }
+  @media (max-width: 600px) {
+    .product-detail-container { padding-bottom: 30px;}
+    .product-main-card {padding: 12px 1vw;}
+  }
+</style>
+
+<div class="product-detail-container">
+  <!-- Thông báo -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
       </div>
+    {% endfor %}
+  {% endif %}
 
-      <!-- Thông tin sản phẩm -->
-      <div class="col-md-6">
-        <h2 class="text-warning">{{ product.name }}</h2>
+  <div class="product-main-card row align-items-start g-4">
+    <!-- Ảnh sản phẩm -->
+    <div class="col-md-6 product-img-box mb-3">
+      <img id="product-image" src="{{ product.image.url }}" alt="{{ product.name }}">
+    </div>
 
-        <!-- Màu sắc -->
-        {% if colors %}
-          <div class="mb-3">
-            <label for="color-select" class="form-label fw-bold">Chọn màu:</label>
-            <select id="color-select" class="form-select" onchange="updateImageByColor()">
-              {% for color in colors %}
-                <option value="{{ color.image.url }}">{{ color.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-        {% endif %}
+    <!-- Thông tin sản phẩm -->
+    <div class="col-md-6">
+      <h2 class="product-title">{{ product.name }}</h2>
+      <!-- Màu sắc -->
+      {% if colors %}
+        <div class="mb-3">
+          <label for="color-select" class="form-label product-section-label">Chọn màu:</label>
+          <select id="color-select" class="form-select" onchange="updateImageByColor()">
+            {% for color in colors %}
+              <option value="{{ color.image.url }}">{{ color.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
 
-        {% if product.has_variants %}
-          {% if variants %}
-            <form method="post">
-              {% csrf_token %}
-              <div class="mb-3">
-                <label for="variant_id" class="form-label fw-bold">Chọn cấu hình:</label>
-                <select name="variant_id" id="variant_id" class="form-select" onchange="updatePrice()">
-                  {% for v in variants %}
-                    <option value="{{ v.id }}" data-price="{{ v.price }}">{{ v.storage }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-
-              <p><strong>Giá:</strong>
-                <span id="variant-price" class="text-danger fw-bold">{{ variants.0.price|floatformat:0 }}</span> VNĐ
-              </p>
-
-              <div class="mb-3">
-                <label for="quantity" class="form-label">Số lượng:</label>
-                <input type="number" name="quantity" value="1" min="1" class="form-control w-25">
-              </div>
-
-              <button type="submit" class="btn btn-success">🛖 Thêm vào giỏ</button>
-            </form>
-          {% else %}
-            <p class="text-danger">Sản phẩm chưa có biến thể.</p>
-          {% endif %}
-        {% else %}
-          <form method="post">
+      <!-- Biến thể -->
+      {% if product.has_variants %}
+        {% if variants %}
+          <form method="post" class="mt-3">
             {% csrf_token %}
-            <p><strong>Giá:</strong>
-              <span class="text-danger fw-bold">{{ product.display_price|floatformat:0 }}</span> VNĐ
-            </p>
+            <div class="mb-3">
+              <label for="variant_id" class="form-label product-section-label">Chọn cấu hình:</label>
+              <select name="variant_id" id="variant_id" class="form-select" onchange="updatePrice()">
+                {% for v in variants %}
+                  <option value="{{ v.id }}" data-price="{{ v.price }}">{{ v.storage }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="product-price mb-2">
+              <span id="variant-price">{{ variants.0.price|floatformat:0 }}</span> VNĐ
+            </div>
 
             <div class="mb-3">
               <label for="quantity" class="form-label">Số lượng:</label>
-              <input type="number" name="quantity" value="1" min="1" class="form-control w-25">
+              <input type="number" name="quantity" value="1" min="1" class="form-control w-50">
             </div>
-
-            <button type="submit" class="btn btn-success">🛖 Thêm vào giỏ</button>
+            <button type="submit" class="btn btn-main">🛒 Thêm vào giỏ</button>
           </form>
+        {% else %}
+          <p class="text-danger mt-3">Sản phẩm chưa có biến thể.</p>
         {% endif %}
-      </div>
-    </div>
-
-    <hr>
-
-    <!-- Bình luận -->
-    <h4 class="mt-5 mb-3">💬 Bình luận</h4>
-
-    <div class="card bg-dark text-white shadow-sm mb-4">
-      <div class="card-body">
-        <form method="post" action="?comment=true">
+      {% else %}
+        <form method="post" class="mt-3">
           {% csrf_token %}
+          <div class="product-price mb-2">
+            <span id="base-price">{{ product.display_price|floatformat:0 }}</span> VNĐ
+          </div>
           <div class="mb-3">
-            {{ form.content.label_tag }}
-            {{ form.content }}
+            <label for="quantity" class="form-label">Số lượng:</label>
+            <input type="number" name="quantity" value="1" min="1" class="form-control w-50">
           </div>
-          <button type="submit" class="btn btn-pink">Gửi bình luận</button>
+          <button type="submit" class="btn btn-main">🛒 Thêm vào giỏ</button>
         </form>
-      </div>
-    </div>
-
-    {% for c in comments %}
-  {% include 'shop/partials/comment_card.html' with c=c %}
-{% empty %}
-  <p class="text-muted">Chưa có bình luận nào.</p>
-{% endfor %}
-
-
-    <hr>
-
-    <!-- Gợi ý sản phẩm -->
-    <h4 class="mt-5 text-warning">🧠 Gợi ý sản phẩm tương tự</h4>
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mt-3">
-      {% for p in related_products %}
-        <div class="col">
-          <div class="card h-100 shadow-sm border-0 bg-light">
-            <img src="{{ p.image.url }}" class="card-img-top p-3" style="height: 180px; object-fit: contain;">
-            <div class="card-body text-center">
-              <h6 class="card-title text-dark">{{ p.name|truncatechars:50 }}</h6>
-              <p class="text-danger fw-bold mb-2">
-                <span class="related-price" data-price="{{ p.display_price|floatformat:0 }}"></span> VNĐ
-              </p>
-              <a href="{% url 'product_detail' p.id %}" class="btn btn-outline-dark btn-sm">Xem chi tiết</a>
-            </div>
-          </div>
-        </div>
-      {% empty %}
-        <p class="text-muted">Không có gợi ý nào.</p>
-      {% endfor %}
+      {% endif %}
     </div>
   </div>
 
-  <!-- JS -->
-  <script>
-    function updatePrice() {
-      const select = document.getElementById("variant_id");
-      const price = select.options[select.selectedIndex].getAttribute("data-price");
-      document.getElementById("variant-price").textContent = parseFloat(price).toLocaleString("vi-VN");
-    }
+  <hr class="my-5" style="border-color:#2e4257;opacity:.4;">
 
-    function updateImageByColor() {
-      const select = document.getElementById("color-select");
-      const image = document.getElementById("product-image");
-      image.src = select.value;
-    }
+  <!-- Bình luận -->
+  <h4 class="mb-3 product-section-label">💬 Bình luận</h4>
+  <div class="bg-comment mb-4">
+    <form method="post" action="?comment=true">
+      {% csrf_token %}
+      <div class="mb-3">
+        {{ form.content.label_tag }}
+        {{ form.content }}
+      </div>
+      <button type="submit" class="btn btn-pink">Gửi bình luận</button>
+    </form>
+  </div>
+  {% for c in comments %}
+    {% include 'shop/partials/comment_card.html' with c=c %}
+  {% empty %}
+    <p class="text-muted">Chưa có bình luận nào.</p>
+  {% endfor %}
 
-    document.addEventListener("DOMContentLoaded", function () {
-      updatePrice();
-      document.querySelectorAll(".related-price").forEach(function (el) {
-        const raw = parseFloat(el.dataset.price);
-        el.textContent = isNaN(raw) ? "Liên hệ" : raw.toLocaleString("vi-VN");
-      });
+  <hr class="my-5" style="border-color:#2e4257;opacity:.4;">
+
+  <!-- Gợi ý sản phẩm (Related Products) -->
+  <h4 class="product-section-label mb-3">🧠 Gợi ý sản phẩm tương tự</h4>
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mt-2">
+    {% for p in related_products %}
+      <div class="col">
+        <div class="related-card h-100 shadow-sm">
+          <img src="{{ p.image.url }}" class="card-img-top" alt="{{ p.name }}">
+          <div class="card-body text-center d-flex flex-column justify-content-between" style="padding-bottom: 18px;">
+            <div>
+              <div class="card-title related-title mb-2">{{ p.name|truncatechars:50 }}</div>
+              <div class="related-price mb-2" data-price="{{ p.display_price|floatformat:0 }}"></div>
+            </div>
+            <a href="{% url 'product_detail' p.id %}" class="btn btn-related">Xem chi tiết</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-muted">Không có gợi ý nào.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  function updatePrice() {
+    const select = document.getElementById("variant_id");
+    const price = select.options[select.selectedIndex].getAttribute("data-price");
+    document.getElementById("variant-price").textContent = parseFloat(price).toLocaleString("vi-VN");
+  }
+  function updateImageByColor() {
+    const select = document.getElementById("color-select");
+    const image = document.getElementById("product-image");
+    image.src = select.value;
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    if(document.getElementById("variant_id")) updatePrice();
+    // Format giá trong phần gợi ý
+    document.querySelectorAll(".related-price").forEach(function (el) {
+      const raw = parseFloat(el.dataset.price);
+      el.textContent = isNaN(raw) ? "Liên hệ" : raw.toLocaleString("vi-VN") + "₫";
     });
-  </script>
-
-  <style>
-    .bg-pink {
-      background-color: #ff66b2 !important;
-    }
-
-    .btn-pink {
-      background-color: #ff66b2;
-      color: white;
-      border: none;
-      transition: all 0.3s ease;
-    }
-
-    .btn-pink:hover {
-      background-color: #ff3399;
-      color: white;
-    }
-  </style>
-  {% endblock %}
+    // Giá cho sản phẩm không biến thể
+    var basePrice = document.getElementById("base-price");
+    if(basePrice) basePrice.textContent = parseFloat(basePrice.textContent.replace(/[^\d]/g,'')).toLocaleString("vi-VN");
+  });
+</script>
+{% endblock %}

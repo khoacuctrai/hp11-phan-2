@@ -10,9 +10,17 @@ from django.template.loader import render_to_string
 from .forms import SignupForm, CommentForm, CheckoutForm, FeedbackForm
 from .models import (
     Product, ProductVariant, CartItem, Comment,
-    Order, OrderItem, Feedback, CommentReaction, ProductColor
+    Order, OrderItem, Feedback, CommentReaction, ProductColor, CarouselImage
 )
-
+from django.views.decorators.csrf import csrf_exempt
+import qrcode
+import io
+import base64
+from django.urls import reverse
+from django.core.mail import send_mail
+from django.contrib.auth.forms import AuthenticationForm
+from django.utils import timezone
+#Xử lý logic cho từng request, trả về response
 # Chia nhóm cho carousel
 def chunk_products(lst, size):
     for i in range(0, len(lst), size):
@@ -22,7 +30,21 @@ def chunk_products(lst, size):
 def home(request):
     featured_products = Product.objects.filter(is_featured=True)
     product_groups = list(chunk_products(featured_products, 3))
-    return render(request, 'shop/home.html', {'product_groups': product_groups})
+
+    # Lấy ảnh carousel
+    carousel_images = CarouselImage.objects.filter(is_active=True)
+
+    return render(
+        request,
+        'shop/home.html',
+        {
+            'product_groups': product_groups,
+            'carousel_images': carousel_images,
+        }
+    )
+
+
+from django.core.mail import send_mail
 
 def signup_view(request):
     if request.method == 'POST':
@@ -30,11 +52,50 @@ def signup_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
+            # Gửi mail chào mừng
+            subject = "Chào mừng bạn đã đăng ký tài khoản!"
+            message = f"""
+Xin chào {user.username},
+
+Cảm ơn bạn đã đăng ký tài khoản tại cửa hàng của chúng tôi!
+
+Nếu bạn không phải là người đăng ký, vui lòng bỏ qua email này.
+
+Trân trọng,
+Đội ngũ cửa hàng
+"""
+            send_mail(subject, message, None, [user.email])
             messages.success(request, "🎉 Đăng ký thành công! Chào mừng bạn.")
             return redirect('home')
     else:
         form = SignupForm()
     return render(request, 'shop/signup.html', {'form': form})
+
+
+def login_view(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            # Gửi email thông báo đăng nhập
+            subject = "Thông báo: Có người vừa đăng nhập tài khoản của bạn"
+            message = f"""
+Xin chào {user.username},
+
+Tài khoản của bạn vừa được đăng nhập vào lúc {timezone.now().strftime('%H:%M:%S %d/%m/%Y')}.
+
+Nếu không phải bạn, vui lòng đổi mật khẩu ngay lập tức hoặc liên hệ hỗ trợ!
+
+Trân trọng,
+Đội ngũ cửa hàng
+"""
+            send_mail(subject, message, None, [user.email])
+            messages.success(request, "🟢 Đăng nhập thành công!")
+            return redirect('home')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'shop/login.html', {'form': form})
 
 # ✅ Chi tiết sản phẩm + Gợi ý + Bình luận
 @login_required
@@ -57,7 +118,7 @@ def product_detail(request, pk):
                 product=product,
                 variant=variant
             )
-            cart_item.quantity += quantity
+            cart_item.quantity = quantity  # Ghi đè thay vì cộng dồn
             cart_item.save()
             messages.success(request, f'✅ Đã thêm {quantity} x "{product.name}" vào giỏ hàng.')
             return redirect('cart')
@@ -86,13 +147,24 @@ def product_detail(request, pk):
 @login_required
 def cart_view(request):
     cart_items = CartItem.objects.filter(user=request.user)
-    total_price = sum(
-        (item.variant.price if item.variant else item.product.display_price()) * item.quantity
-        for item in cart_items
-    )
+
+    # Chuẩn bị list mới chứa từng item và giá tiền sẵn
+    items = []
+    total_price = 0
+
+    for item in cart_items:
+        price = item.variant.price if item.variant else item.product.display_price()
+        subtotal = price * item.quantity
+        total_price += subtotal
+        items.append({
+            'item': item,
+            'price': price,
+            'subtotal': subtotal,
+        })
+
     return render(request, 'shop/cart.html', {
-        'cart_items': cart_items,
-        'total_price': total_price
+        'items': items,
+        'total_price': total_price,
     })
 
 @login_required
@@ -107,34 +179,52 @@ def add_to_cart(request, pk):
         product=product,
         variant=variant
     )
-    cart_item.quantity += quantity
+    cart_item.quantity = quantity  # Ghi đè thay vì cộng dồn
     cart_item.save()
     messages.success(request, f'🛒 Đã thêm {quantity} x {variant} vào giỏ hàng.')
     return redirect('cart')
 
 # ✅ Tăng/giảm/xoá
-@login_required
+@csrf_exempt
 def increase_quantity(request, item_id):
-    item = get_object_or_404(CartItem, id=item_id, user=request.user)
+    item = CartItem.objects.get(id=item_id, user=request.user)
     item.quantity += 1
     item.save()
-    return redirect('cart')
+    return JsonResponse(cart_data_response(request))
 
-@login_required
+@csrf_exempt
 def decrease_quantity(request, item_id):
-    item = get_object_or_404(CartItem, id=item_id, user=request.user)
+    item = CartItem.objects.get(id=item_id, user=request.user)
     if item.quantity > 1:
         item.quantity -= 1
         item.save()
-    else:
-        item.delete()
-    return redirect('cart')
+    return JsonResponse(cart_data_response(request))
 
-@login_required
+@csrf_exempt
 def remove_from_cart(request, item_id):
-    item = get_object_or_404(CartItem, id=item_id, user=request.user)
+    item = CartItem.objects.get(id=item_id, user=request.user)
     item.delete()
-    return redirect('cart')
+    return JsonResponse(cart_data_response(request))
+
+def cart_data_response(request):
+    items = []
+    cart_items = CartItem.objects.filter(user=request.user)
+    total_price = 0
+    for item in cart_items:
+        price = int(item.variant.price if item.variant else item.product.display_price())
+        subtotal = price * item.quantity
+        total_price += subtotal
+        items.append({
+            'id': item.id,
+            'quantity': item.quantity,
+            'price': price,
+            'subtotal': subtotal,
+        })
+    return {
+        'success': True,
+        'items': items,
+        'total_price': total_price
+    }
 
 # ✅ Like / Dislike bình luận
 from django.http import HttpResponse, HttpResponseBadRequest
@@ -202,6 +292,8 @@ def checkout(request):
                     quantity=item.quantity
                 )
             cart_items.delete()
+            # Gửi mail xác nhận
+            send_order_confirmation_mail(order, order.email)
             messages.success(request, "✅ Đặt hàng thành công!")
             return render(request, 'shop/checkout_success.html', {'order': order})
     else:
@@ -261,3 +353,102 @@ def search_products(request):
         'query': query,
         'results': results
     })
+
+
+# ✅ QR Payment
+def generate_qr_code(data: str) -> str:
+    """
+    Sinh QR code từ chuỗi data và trả về base64 string PNG.
+    """
+    qr = qrcode.QRCode(version=1, box_size=6, border=2)
+    qr.add_data(data)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    return base64.b64encode(buffer.getvalue()).decode()
+
+@login_required
+def qr_payment(request):
+    cart_items = CartItem.objects.filter(user=request.user)
+    if not cart_items.exists():
+        messages.warning(request, "🛒 Giỏ hàng của bạn đang trống.")
+        return redirect('cart')
+
+    items = []
+    total_price = 0
+    for item in cart_items:
+        price = item.variant.price if item.variant else item.product.display_price()
+        subtotal = price * item.quantity
+        total_price += subtotal
+        items.append({
+            'product': item.product.name,
+            'variant': getattr(item.variant, 'storage', ''),
+            'color': item.variant.color.name if getattr(item.variant, 'color', None) else '',
+            'quantity': item.quantity,
+            'subtotal': subtotal,
+        })
+
+    qr_payload = f"PAYMENT|user={request.user.id}|amount={total_price}"
+    qr_code_base64 = generate_qr_code(qr_payload)
+
+    if request.method == 'POST':
+        form = CheckoutForm(request.POST)
+        if form.is_valid():
+            order = Order.objects.create(
+                user=request.user,
+                full_name=form.cleaned_data['full_name'],
+                email=form.cleaned_data['email'],
+                phone=form.cleaned_data['phone'],
+                address=form.cleaned_data['address'],
+                is_paid=True
+            )
+            for item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    product=item.product,
+                    variant=item.variant,
+                    quantity=item.quantity
+                )
+            cart_items.delete()
+            # Gửi mail xác nhận
+            send_order_confirmation_mail(order, order.email)
+            messages.success(request, "✅ Thanh toán QR thành công!")
+            return render(request, 'shop/checkout_success.html', {'order': order})
+    else:
+        form = CheckoutForm()
+
+    return render(request, 'shop/qr_payment.html', {
+        'items': items,
+        'total_price': total_price,
+        'qr_code': qr_code_base64,
+        'form': form
+    })
+
+def send_order_confirmation_mail(order, email):
+    subject = "Xác nhận đơn hàng thành công"
+    message = f"""
+Chào {order.full_name},
+
+Cảm ơn bạn đã đặt hàng tại cửa hàng của chúng tôi!
+
+Thông tin đơn hàng:
+- Họ tên: {order.full_name}
+- Số điện thoại: {order.phone}
+- Email: {order.email}
+- Địa chỉ: {order.address}
+
+Các sản phẩm đã mua:
+"""
+    items = OrderItem.objects.filter(order=order)
+    for idx, item in enumerate(items, 1):
+        prod = item.product.name
+        variant = item.variant.storage if item.variant else ""
+        color = item.variant.color.name if hasattr(item.variant, 'color') and item.variant.color else ""
+        message += f"  {idx}. {prod} {variant} {color} x{item.quantity}\n"
+
+    
+    message += "\nĐơn hàng của bạn sẽ sớm được xác nhận và giao hàng.\nTrân trọng!"
+
+    send_mail(subject, message, None, [email])

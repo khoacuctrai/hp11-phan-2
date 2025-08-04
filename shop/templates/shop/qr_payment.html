@@ -1,0 +1,145 @@
+{% extends 'shop/base.html' %}
+{% load humanize %}
+{% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center align-items-start">
+    <!-- QR Code Column -->
+    <div class="col-md-5 text-center mb-4">
+      <div class="card shadow-sm rounded-4 p-4 animate__animated animate__fadeInLeft">
+        <h3 class="mb-3 text-success fw-bold">Quét mã QR để thanh toán</h3>
+        <div class="qr-container my-3">
+          <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code thanh toán"
+               class="img-fluid p-3 border rounded-3 shadow qr-glow"
+               style="transition: transform .4s cubic-bezier(.68,-0.55,.27,1.55), box-shadow .3s;">
+        </div>
+        <div class="mt-3">
+          <span class="fs-5 text-dark">Số tiền:</span>
+          <span class="js-money price-style" data-money="{{ total_price }}">{{ total_price }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Info & Form Column -->
+    <div class="col-md-7">
+      <div class="card shadow-sm rounded-4 p-4 animate__animated animate__fadeInRight">
+        <h4 class="mb-3 text-primary">Thông tin đơn hàng</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover align-middle mb-4 animate__animated animate__fadeInUp">
+            <thead class="table-light">
+              <tr>
+                <th>Sản phẩm</th>
+                <th>Phiên bản</th>
+                <th class="text-center">Số lượng</th>
+                <th class="text-end">Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for it in items %}
+              <tr>
+                <td>{{ it.product }}</td>
+                <td>{{ it.variant }}</td>
+                <td class="text-center">{{ it.quantity }}</td>
+                <td class="text-end">
+                  <span class="js-money price-style" data-money="{{ it.subtotal }}">{{ it.subtotal }}</span>
+                </td>
+              </tr>
+              {% endfor %}
+              <tr class="table-secondary">
+                <td colspan="3" class="text-end fw-bold">Tổng cộng</td>
+                <td class="text-end">
+                  <span class="js-money price-style" data-money="{{ total_price }}">{{ total_price }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <h4 class="mt-4 mb-3 text-primary">Thông tin người mua</h4>
+        <form method="post" class="needs-validation animate__animated animate__fadeInUp" novalidate>
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button type="submit" class="btn btn-success btn-lg px-4 mt-2 rounded-pill shadow pay-btn">
+            <i class="fas fa-check-circle"></i> Xác nhận thanh toán
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Animate.css CDN (hiệu ứng slide/fade) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<style>
+  .price-style, .js-money {
+    color: #e53935;
+    font-size: 2.1rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    line-height: 1;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+  }
+  .currency-symbol {
+    font-size: 1.25rem;
+    font-weight: 600;
+    vertical-align: top;
+    margin-left: 2px;
+    position: relative;
+    top: -2px;
+  }
+  @media (max-width: 600px) {
+    .price-style, .js-money { font-size: 1.3rem; }
+    .currency-symbol { font-size: 0.9rem; top: -1px; }
+  }
+  .card {
+    border-radius: 18px !important;
+    transition: box-shadow 0.4s, transform 0.4s;
+  }
+  .card:hover {
+    box-shadow: 0 8px 32px rgba(52,153,255,.18), 0 2px 12px rgba(52,153,255,.11);
+    transform: translateY(-2px) scale(1.012);
+  }
+  .qr-glow {
+    box-shadow: 0 0 24px 6px #40c9ff99, 0 0 2px #fff;
+  }
+  .qr-glow:hover {
+    transform: scale(1.08) rotate(-1deg);
+    box-shadow: 0 0 32px 12px #4fc3f7cc, 0 0 4px #fff;
+  }
+  .glow-text {
+    text-shadow: 0 0 8px #fff7e0, 0 0 4px #ffb300b0;
+    transition: text-shadow .3s;
+  }
+  .pay-btn {
+    box-shadow: 0 2px 10px #2ecc7070;
+    transition: background .18s, transform .18s, box-shadow .18s;
+    font-size: 1.16rem;
+    font-weight: 600;
+    letter-spacing: .5px;
+  }
+  .pay-btn:hover {
+    background: #19be6b !important;
+    transform: scale(1.03);
+    box-shadow: 0 6px 24px #81f3ac70;
+  }
+  .table th, .table td {
+    vertical-align: middle !important;
+  }
+  .table thead th {
+    background: #f7fafc !important;
+  }
+</style>
+<script>
+// Format money to 3.000.000
+function formatMoneyVND(number) {
+    if (!number) return '';
+    return Number(number).toLocaleString('vi-VN');
+}
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.js-money').forEach(function(el) {
+        let value = el.dataset.money || el.textContent.replace(/[^\d]/g, '');
+        if (value) {
+            el.innerHTML = formatMoneyVND(value) + "<span class='currency-symbol'>đ</span>";
+        }
+    });
+});
+</script>
+{% endblock %}
