@@ -3,11 +3,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from . import views
-#Điều hướng URL đến view.
+from django.http import Http404
+
 urlpatterns = [
     # Trang chủ
     path('', views.home, name='home'),
-    
 
     # ✅ Auth
     path('signup/', views.signup_view, name='signup'),
@@ -30,8 +30,6 @@ urlpatterns = [
     # ✅ Like / Dislike bình luận
     path('comment/<int:comment_id>/<str:reaction_type>/', views.react_to_comment, name='react_to_comment'),
 
-
-
     # ✅ Danh mục sản phẩm
     path('iphone/', views.iphone_products, name='iphone_products'),
     path('macbook/', views.macbook_products, name='macbook_products'),
@@ -39,15 +37,14 @@ urlpatterns = [
     path('watch/', views.watch_products, name='watch_products'),
     path('audio/', views.audio_products, name='audio_products'),
     path('accessory/', views.accessory_products, name='accessory_products'),
-    
 
     # ✅ Góp ý
     path('feedback/', views.feedback_view, name='feedback'),
-     path('inventory/', views.inventory_management, name='inventory_management'),
+    path('inventory/', views.inventory_management, name='inventory_management'),
+
     # ✅ Tìm kiếm
     path('search/', views.search_products, name='search_products'),
+
+  
 ]
 
-# ✅ Serve ảnh media trong môi trường dev
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
