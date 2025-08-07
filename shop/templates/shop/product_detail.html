@@ -367,7 +367,7 @@
 
 <div class="product-detail-container">
   <!-- Thông báo -->
-  {% if messages %}
+  {  {% if messages %}
     {% for message in messages %}
       <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
         {{ message }}
@@ -377,12 +377,9 @@
   {% endif %}
 
   <div class="product-main-card row align-items-start g-4">
-    <!-- Ảnh sản phẩm -->
     <div class="col-md-6 product-img-box mb-3">
       <img id="product-image" src="{{ product.image.url }}" alt="{{ product.name }}">
     </div>
-
-    <!-- Thông tin sản phẩm -->
     <div class="col-md-6">
       <h2 class="product-title">{{ product.name }}</h2>
       <!-- Màu sắc -->
@@ -397,7 +394,7 @@
         </div>
       {% endif %}
 
-      <!-- Biến thể -->
+      <!-- Biến thể (variant) -->
       {% if product.has_variants %}
         {% if variants %}
           <form method="post" class="mt-3">
@@ -406,42 +403,54 @@
               <label for="variant_id" class="form-label product-section-label">Chọn cấu hình:</label>
               <select name="variant_id" id="variant_id" class="form-select" onchange="updatePrice()">
                 {% for v in variants %}
-                  <option value="{{ v.id }}" data-price="{{ v.price }}">{{ v.storage }}</option>
+                  <option value="{{ v.id }}" data-price="{{ v.price }}"
+                          data-stock="{{ v.stock }}" {% if v.stock == 0 %}disabled{% endif %}>
+                    {{ v.storage }}{% if v.stock == 0 %} - Hết hàng{% endif %}
+                  </option>
                 {% endfor %}
               </select>
             </div>
-
             <div class="product-price mb-2">
               <span id="variant-price">{{ variants.0.price|floatformat:0 }}</span> VNĐ
             </div>
-
             <div class="mb-3">
               <label for="quantity" class="form-label">Số lượng:</label>
-              <input type="number" name="quantity" value="1" min="1" class="form-control w-50">
+              <input type="number" name="quantity" value="1" min="1"
+                     class="form-control w-50" id="quantity-input">
             </div>
-            <button type="submit" class="btn btn-main">🛒 Thêm vào giỏ</button>
+            {% if variants|length == 0 or variants.0.stock == 0 %}
+              <button type="button" class="btn btn-main" disabled>Đã hết hàng</button>
+            {% else %}
+              <button type="submit" class="btn btn-main" id="add-to-cart-btn">🛒 Thêm vào giỏ</button>
+            {% endif %}
           </form>
+          <div id="out-of-stock-msg" class="mt-2 text-danger fw-bold" style="display:none;">Hết hàng - không thể đặt</div>
         {% else %}
           <p class="text-danger mt-3">Sản phẩm chưa có biến thể.</p>
         {% endif %}
       {% else %}
-        <form method="post" class="mt-3">
-          {% csrf_token %}
-          <div class="product-price mb-2">
-            <span id="base-price">{{ product.display_price|floatformat:0 }}</span> VNĐ
-          </div>
-          <div class="mb-3">
-            <label for="quantity" class="form-label">Số lượng:</label>
-            <input type="number" name="quantity" value="1" min="1" class="form-control w-50">
-          </div>
-          <button type="submit" class="btn btn-main">🛒 Thêm vào giỏ</button>
-        </form>
+        {# Trường hợp không có biến thể: kiểm tra product.variants.first.stock #}
+        {% if product.variants.first.stock == 0 %}
+          <div class="alert alert-danger mt-2">Chúng tôi đã hết hàng!</div>
+          <button class="btn btn-main" disabled>Đã hết hàng</button>
+        {% else %}
+          <form method="post" class="mt-3">
+            {% csrf_token %}
+            <div class="product-price mb-2">
+              <span id="base-price">{{ product.display_price|floatformat:0 }}</span> VNĐ
+            </div>
+            <div class="mb-3">
+              <label for="quantity" class="form-label">Số lượng:</label>
+              <input type="number" name="quantity" value="1" min="1" max="{{ product.variants.first.stock }}" class="form-control w-50">
+            </div>
+            <button type="submit" class="btn btn-main">🛒 Thêm vào giỏ</button>
+          </form>
+        {% endif %}
       {% endif %}
     </div>
   </div>
 
   <hr class="my-5" style="border-color:#2e4257;opacity:.4;">
-
   <!-- Bình luận -->
   <h4 class="mb-3 product-section-label">💬 Bình luận</h4>
   <div class="bg-comment mb-4">
@@ -485,28 +494,61 @@
 </div>
 
 <script>
-  function updatePrice() {
-    const select = document.getElementById("variant_id");
-    const price = select.options[select.selectedIndex].getAttribute("data-price");
-    document.getElementById("variant-price").textContent = parseFloat(price).toLocaleString("vi-VN");
+function updatePrice() {
+  const select = document.getElementById("variant_id");
+  if (!select) return;
+
+  const selectedOption = select.options[select.selectedIndex];
+  const price = selectedOption.getAttribute("data-price");
+  const stock = parseInt(selectedOption.getAttribute("data-stock"));
+  document.getElementById("variant-price").textContent = parseFloat(price).toLocaleString("vi-VN");
+
+  // Kiểm tra tồn kho
+  const addBtn = document.getElementById("add-to-cart-btn");
+  const qtyInput = document.getElementById("quantity-input");
+  const outMsg = document.getElementById("out-of-stock-msg");
+
+  if (stock === 0) {
+    if(addBtn) addBtn.disabled = true;
+    if(qtyInput) qtyInput.disabled = true;
+    if(outMsg) outMsg.style.display = 'block';
+  } else {
+    if(addBtn) addBtn.disabled = false;
+    if(qtyInput) {
+      qtyInput.disabled = false;
+      qtyInput.max = stock;
+      if (parseInt(qtyInput.value) > stock) qtyInput.value = stock;
+    }
+    if(outMsg) outMsg.style.display = 'none';
   }
-  function updateImageByColor() {
-    const select = document.getElementById("color-select");
-    const image = document.getElementById("product-image");
-    image.src = select.value;
+}
+
+function updateImageByColor() {
+  const select = document.getElementById("color-select");
+  const image = document.getElementById("product-image");
+  if (select && image) image.src = select.value;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Gọi updatePrice khi vào trang (nếu có variant)
+  if(document.getElementById("variant_id")) updatePrice();
+
+  // Gọi lại updatePrice khi chọn cấu hình khác
+  const variantSelect = document.getElementById("variant_id");
+  if (variantSelect) {
+    variantSelect.addEventListener('change', updatePrice);
   }
-  document.addEventListener("DOMContentLoaded", function () {
-    if(document.getElementById("variant_id")) updatePrice();
-    // Format giá trong phần gợi ý
-    document.querySelectorAll(".related-price").forEach(function (el) {
-      const raw = parseFloat(el.dataset.price);
-      el.textContent = isNaN(raw) ? "Liên hệ" : raw.toLocaleString("vi-VN") + "₫";
-    });
-    // Giá cho sản phẩm không biến thể
-    var basePrice = document.getElementById("base-price");
-    if(basePrice) basePrice.textContent = parseFloat(basePrice.textContent.replace(/[^\d]/g,'')).toLocaleString("vi-VN");
+
+  // Format giá trong phần gợi ý
+  document.querySelectorAll(".related-price").forEach(function (el) {
+    const raw = parseFloat(el.dataset.price);
+    el.textContent = isNaN(raw) ? "Liên hệ" : raw.toLocaleString("vi-VN") + "₫";
   });
+
+  // Giá cho sản phẩm không biến thể
+  var basePrice = document.getElementById("base-price");
+  if(basePrice) basePrice.textContent = parseFloat(basePrice.textContent.replace(/[^\d]/g,'')).toLocaleString("vi-VN");
+});
 </script>
 {% endblock %}
-
 

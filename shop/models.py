@@ -17,7 +17,7 @@ class Product(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     image = models.ImageField(upload_to='product_images/', blank=True, null=True)
     is_featured = models.BooleanField(default=False)
-    # KHÔNG cần trường stock ở Product nếu đã có ở Variant
+    stock = models.PositiveIntegerField(default=0)  # Cho sản phẩm không biến thể
 
     def __str__(self):
         return self.name
