@@ -396,8 +396,13 @@ class VariantStockUpdateForm(forms.ModelForm):
 
 @staff_member_required
 def inventory_management(request):
-    variants = ProductVariant.objects.select_related('product', 'color').order_by(
-        'product__category', 'product__name', 'storage', 'color__name')
+    # lấy q (nếu có) để auto-scroll trên template
+    q = request.GET.get('q', '').strip()
+
+    variants = (ProductVariant.objects
+                .select_related('product', 'color')
+                .order_by('product__category', 'product__name', 'storage', 'color__name'))
+
     if request.method == 'POST':
         variant_id = request.POST.get('variant_id')
         variant = get_object_or_404(ProductVariant, id=variant_id)
@@ -407,7 +412,12 @@ def inventory_management(request):
             return redirect('inventory_management')
     else:
         form = VariantStockUpdateForm()
-    return render(request, 'shop/inventory_management.html', {'variants': variants, 'form': form})
+
+    return render(
+        request,
+        'shop/inventory_management.html',
+        {'variants': variants, 'form': form, 'q': q}
+    )
 
 # ... các view phụ trợ khác (bình luận, order_history, search...) giữ nguyên ...
 

@@ -1,148 +1,166 @@
 {% extends 'shop/base.html' %}
 {% block content %}
 <style>
-:root {
-    --main-bg: #171c28;
-    --main-bg-light: #21273a;
-    --header-gradient: linear-gradient(90deg, #263563 0%, #43519b 100%);
-    --text-main: #e7ebf0;
-    --text-secondary: #aab6c6;
-    --row-even: #232a3b;
-    --row-odd: #1a1f2e;
-    --low-stock-bg: #35240d;
-    --low-stock-text: #ffc940;
-    --btn-gradient: linear-gradient(90deg, #009688 0%, #26ffe6 100%);
-    --btn-gradient-hover: linear-gradient(90deg, #26ffe6 0%, #009688 100%);
+:root{
+  --main-bg:#171c28;--main-bg-light:#21273a;--header-gradient:linear-gradient(90deg,#263563 0%,#43519b 100%);
+  --text-main:#e7ebf0;--row-even:#232a3b;--row-odd:#1a1f2e;--low-stock-bg:#35240d;--low-stock-text:#ffc940;
+  --btn-gradient:linear-gradient(90deg,#009688 0%,#26ffe6 100%);--btn-gradient-hover:linear-gradient(90deg,#26ffe6 0%,#009688 100%);
 }
-body, .inventory-table { background: var(--main-bg); color: var(--text-main); }
+body,.inventory-table{background:var(--main-bg);color:var(--text-main)}
+.inventory-table{width:100%;border-collapse:collapse;margin:18px 0 32px;background:var(--main-bg-light);border-radius:14px;overflow:hidden;box-shadow:0 4px 18px rgba(70,100,180,.15)}
+.inventory-table th,.inventory-table td{padding:13px 10px;text-align:center;border-bottom:1px solid #23273c}
+.inventory-table th{background:var(--header-gradient);color:#fff;font-size:1.05rem;font-weight:600;border-bottom:1.5px solid #334178}
+.inventory-table tr:nth-child(even):not(.low-stock){background:var(--row-even)}
+.inventory-table tr:nth-child(odd):not(.low-stock){background:var(--row-odd)}
+.inventory-table tr.low-stock{background:var(--low-stock-bg)!important}
+.inventory-table tr.low-stock td{color:var(--low-stock-text)!important;font-weight:600}
+.inventory-table tr.highlight{outline:2px solid #26ffe6;box-shadow:inset 0 0 0 9999px rgba(38,255,230,.08)}
+.update-btn{background:var(--btn-gradient);color:#0d2221;border:none;padding:7px 20px;border-radius:7px;font-size:1rem;cursor:pointer;font-weight:500;transition:.15s;box-shadow:0 2px 8px rgba(0,180,180,.13)}
+.update-btn:hover{background:var(--btn-gradient-hover);color:#fff;transform:translateY(-2px) scale(1.04)}
+input[type="number"]{width:70px;padding:6px 7px;border:1.2px solid #263563;border-radius:5px;background:#20253a;color:var(--text-main);text-align:right}
+input[type="number"]:focus{outline:2px solid #00ffe6;border-color:#00ffe6;background:#242b41}
 
-.inventory-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 32px 0;
-    font-size: 1.07rem;
-    background: var(--main-bg-light);
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 4px 18px rgba(70, 100, 180, 0.15);
-}
-.inventory-table th, .inventory-table td {
-    padding: 13px 10px;
-    text-align: center;
-    border-bottom: 1px solid #23273c;
-}
-.inventory-table th {
-    background: var(--header-gradient);
-    color: #fff;
-    font-size: 1.09rem;
-    letter-spacing: 0.5px;
-    font-weight: 600;
-    border-bottom: 1.5px solid #334178;
-}
-.inventory-table tr.low-stock,
-.inventory-table tr.low-stock:nth-child(even),
-.inventory-table tr.low-stock:nth-child(odd) {
-    background: var(--low-stock-bg) !important;
-}
-.inventory-table tr.low-stock td {
-    color: var(--low-stock-text) !important;
-    font-weight: 600;
-}
-.inventory-table tr:nth-child(even):not(.low-stock) { background: var(--row-even); }
-.inventory-table tr:nth-child(odd):not(.low-stock) { background: var(--row-odd); }
-.inventory-table tr:last-child td { border-bottom: none; }
-.inventory-table td, .inventory-table th { transition: background 0.25s, color 0.2s; }
+/* search */
+.search-wrap{max-width:680px;margin:26px auto 8px;position:relative}
+.search-input{width:100%;background:#1c2337;border:1.5px solid #2e3d63;color:#e7ebf0;border-radius:12px;padding:12px 16px 12px 44px;font-size:1.02rem}
+.search-input:focus{outline:2px solid #26ffe6;border-color:#26ffe6;background:#1a2236}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.75}
+.suggest{position:absolute;left:0;right:0;top:100%;background:#101523;border:1px solid #253159;border-radius:10px;margin-top:6px;max-height:260px;overflow:auto;display:none;z-index:30}
+.suggest-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid #1f2a47}
+.suggest-item:last-child{border-bottom:none}
+.suggest-item:hover{background:#182036}
+.no-result{padding:10px 12px;color:#9fb3d1}
 
-.update-btn {
-    background: var(--btn-gradient);
-    color: #0d2221;
-    border: none;
-    padding: 7px 20px;
-    border-radius: 7px;
-    font-size: 1rem;
-    cursor: pointer;
-    font-weight: 500;
-    transition: 0.15s;
-    box-shadow: 0 2px 8px rgba(0,180,180,0.13);
-}
-.update-btn:hover {
-    background: var(--btn-gradient-hover);
-    color: #fff;
-    transform: translateY(-2px) scale(1.04);
-}
-input[type="number"] {
-    width: 70px;
-    padding: 6px 7px;
-    border: 1.2px solid #263563;
-    border-radius: 5px;
-    font-size: 1rem;
-    margin-right: 8px;
-    background: #20253a;
-    color: var(--text-main);
-    text-align: right;
-}
-input[type="number"]:focus {
-    outline: 2px solid #00ffe6;
-    border-color: #00ffe6;
-    background: #242b41;
-}
-
-@media (max-width: 700px) {
-    .inventory-table th, .inventory-table td {
-        font-size: 0.97rem;
-        padding: 8px 4px;
-    }
-    input[type="number"] { width: 45px; padding: 3px 3px; }
-    .update-btn { padding: 6px 10px; font-size: 0.92rem; }
+@media (max-width:700px){
+  .inventory-table th,.inventory-table td{font-size:.95rem;padding:8px 4px}
+  input[type="number"]{width:56px}
 }
 </style>
 
-<h2 style="margin: 28px 0 18px 0; color: #2f9fff; font-size: 1.27rem; letter-spacing:1px; text-align:center;">
-    Quản lý kho hàng
-</h2>
+<h2 style="margin:20px 0 6px;color:#2f9fff;font-size:1.27rem;letter-spacing:1px;text-align:center;">Quản lý kho hàng</h2>
 
-<table class="inventory-table">
+<!-- Thanh tìm kiếm -->
+<div class="search-wrap">
+  <svg class="search-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <path d="M10.5 18a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15Z" stroke="#9fb3d1" stroke-width="1.8"/>
+    <path d="m16 16 4.5 4.5" stroke="#9fb3d1" stroke-width="1.8" stroke-linecap="round"/>
+  </svg>
+  <input id="search-input" class="search-input" type="text" placeholder="Tìm theo tên, dung lượng, màu… (Enter để cuộn tới)">
+  <div id="suggest-box" class="suggest"></div>
+</div>
+
+<table class="inventory-table" id="inventory-table">
+  <thead>
     <tr>
-        <th>#</th>
-        <th>Sản phẩm</th>
-        <th>Dung lượng</th>
-        <th>Màu sắc</th>
-        <th>Kho hiện tại</th>
-        <th>Cập nhật tồn kho</th>
+      <th>#</th>
+      <th style="text-align:left">Sản phẩm</th>
+      <th>Dung lượng</th>
+      <th>Màu sắc</th>
+      <th>Kho hiện tại</th>
+      <th>Cập nhật tồn kho</th>
     </tr>
+  </thead>
+  <tbody>
     {% for v in variants %}
-    <tr class="{% if v.stock <= 5 %}low-stock{% endif %}">
-        <td>{{ forloop.counter }}</td>
-        <td style="text-align:left;">{{ v.product.name }}</td>
-        <td>
-            {% if v.storage %}
-                {{ v.storage }}
-            {% else %}
-                <span style="color:var(--low-stock-text);">Không có cấu hình</span>
-            {% endif %}
-        </td>
-        <td>
-            {% if v.color %}
-                {{ v.color.name }}
-            {% else %}
-                Không
-            {% endif %}
-        </td>
-        <td>
-            {{ v.stock }}
-            {% if v.stock <= 5 %}
-                <span style="color:var(--low-stock-text); font-size:13px; font-weight:500;">(Sắp hết)</span>
-            {% endif %}
-        </td>
-        <td>
-            <form method="post" style="display:flex;align-items:center;justify-content:center;gap:7px;">
-                {% csrf_token %}
-                <input type="hidden" name="variant_id" value="{{ v.id }}">
-                <input type="number" name="stock" value="{{ v.stock }}" min="0">
-                <button class="update-btn" type="submit">Cập nhật</button>
-            </form>
-        </td>
+    <tr id="row-{{ v.id }}" class="{% if v.stock <= 5 %}low-stock{% endif %}"
+        data-name="{{ v.product.name|lower }}"
+        data-storage="{{ v.storage|default_if_none:''|lower }}"
+        data-color="{{ v.color.name|default_if_none:''|lower }}">
+      <td>{{ forloop.counter }}</td>
+      <td style="text-align:left;">{{ v.product.name }}</td>
+      <td>{% if v.storage %}{{ v.storage }}{% else %}<span style="color:var(--low-stock-text);">Không có cấu hình</span>{% endif %}</td>
+      <td>{% if v.color %}{{ v.color.name }}{% else %}Không{% endif %}</td>
+      <td>
+        {{ v.stock }}
+        {% if v.stock <= 5 %}
+          <span style="color:var(--low-stock-text);font-size:13px;font-weight:500;">(Sắp hết)</span>
+        {% endif %}
+      </td>
+      <td>
+        <form method="post" style="display:flex;align-items:center;justify-content:center;gap:7px;">
+          {% csrf_token %}
+          <input type="hidden" name="variant_id" value="{{ v.id }}">
+          <input type="number" name="stock" value="{{ v.stock }}" min="0">
+          <button class="update-btn" type="submit">Cập nhật</button>
+        </form>
+      </td>
     </tr>
     {% endfor %}
+  </tbody>
 </table>
+
+<script>
+// --- Lấy các phần tử ---
+const input = document.getElementById('search-input');
+const box = document.getElementById('suggest-box');
+const rows = Array.from(document.querySelectorAll('#inventory-table tbody tr'));
+
+// ghép text để tìm
+function rowText(r){
+  return (r.dataset.name + ' ' + r.dataset.storage + ' ' + r.dataset.color).trim();
+}
+function highlightRow(row){
+  rows.forEach(r=>r.classList.remove('highlight'));
+  if(!row) return;
+  row.classList.add('highlight');
+  row.scrollIntoView({behavior:'smooth', block:'center'});
+}
+function labelOf(r){
+  const name = r.dataset.name;
+  const st = r.dataset.storage;
+  const c = r.dataset.color;
+  let extra = [];
+  if(st) extra.push(st);
+  if(c) extra.push(c);
+  return extra.length ? `${name} — ${extra.join(' / ')}` : name;
+}
+
+// cập nhật gợi ý
+function updateSuggest(){
+  const q = input.value.trim().toLowerCase();
+  if(!q){ box.style.display='none'; box.innerHTML=''; return; }
+  const matched = rows.filter(r => rowText(r).includes(q)).slice(0,12);
+  if(matched.length === 0){
+    box.innerHTML = `<div class="no-result">Không tìm thấy kết quả</div>`;
+    box.style.display='block';
+    return;
+  }
+  box.innerHTML = matched.map(r=>`<div class="suggest-item" data-row="${r.id}">${labelOf(r)}</div>`).join('');
+  box.style.display='block';
+}
+input.addEventListener('input', updateSuggest);
+
+// click gợi ý → cuộn
+box.addEventListener('click', (e)=>{
+  const item = e.target.closest('.suggest-item');
+  if(!item) return;
+  const row = document.getElementById(item.dataset.row);
+  highlightRow(row);
+  box.style.display='none';
+});
+
+// Enter → cuộn đến khớp đầu tiên
+input.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    const q = input.value.trim().toLowerCase();
+    const hit = rows.find(r => rowText(r).includes(q));
+    if(hit){ highlightRow(hit); box.style.display='none'; }
+  }
+});
+
+// click ngoài → ẩn gợi ý
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.search-wrap')) box.style.display='none';
+});
+
+// nếu có ?q= trên URL (server pass qua biến q) → tự cuộn
+(function(){
+  const qParam = "{{ q|default_if_none:''|escapejs }}".toLowerCase();
+  if(!qParam) return;
+  input.value = qParam;
+  const hit = rows.find(r => rowText(r).includes(qParam));
+  if(hit) highlightRow(hit);
+})();
+</script>
 {% endblock %}
