@@ -215,7 +215,7 @@ function sendAjaxRequest(url, itemId, action) {
         updateCartUI(data);
       }
     } else {
-      alert(data.message || 'Có lỗi xảy ra');
+      alert(data.message || 'Chúng tôi đã hết hàng');
     }
   })
   .catch(error => { alert('Có lỗi khi kết nối máy chủ!'); })
