@@ -2,6 +2,9 @@
 {% block title %}Kết quả tìm kiếm{% endblock %}
 
 {% block content %}
+<!-- AOS CSS -->
+<link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
 <style>
   body { background: #18191b; }
   .search-title {
@@ -48,7 +51,6 @@
     font-weight: 900;
     color: #ffe066;
     margin-bottom: 7px;
-    margin-top: 2px;
     letter-spacing: .01em;
     text-shadow: 0 1px 7px #ffe06625;
   }
@@ -58,8 +60,6 @@
     color: #fff;
     letter-spacing: .02em;
     text-shadow: 0 1px 6px #ffe06611, 0 1px 0 #212;
-    background: none;
-    border-radius: 8px;
     margin-bottom: 9px;
     display: inline-block;
   }
@@ -77,19 +77,16 @@
     border: 2px solid #ffe066;
     color: #ffe066;
     background: transparent;
-    transition: background 0.14s, color 0.13s, box-shadow .11s;
+    transition: all 0.14s ease;
   }
-  .btn-outline-light:hover,
-  .btn-outline-light:focus {
+  .btn-outline-light:hover {
     background: #ffe066;
     color: #23232c;
-    border-color: #ffe066;
     box-shadow: 0 4px 16px #ffe0662c;
     transform: scale(1.03);
   }
   .alert-warning {
     background: #fff3cd;
-    border: none;
     border-radius: 12px;
     box-shadow: 0 3px 18px #ffe06621;
     color: #956005;
@@ -98,34 +95,34 @@
     font-size: 1.15rem;
   }
   @media (max-width: 800px) {
-    .search-title { font-size: 1.22rem;}
-    .search-result-card { border-radius: 10px; min-height: 260px;}
+    .search-title { font-size: 1.22rem; }
+    .search-result-card { border-radius: 10px; min-height: 260px; }
     .search-result-card .card-img-top { max-height: 95px; }
-    .search-result-card .card-title { font-size: 1rem;}
-    .search-result-card .price { font-size: 0.98rem;}
+    .search-result-card .card-title { font-size: 1rem; }
+    .search-result-card .price { font-size: 0.98rem; }
   }
 </style>
 
 <div class="container mt-5">
-  <h2 class="search-title text-center mb-4">
+  <h2 class="search-title text-center mb-4" data-aos="fade-down">
     🔍 Kết quả tìm kiếm cho: "<span class="search-keyword">{{ query }}</span>"
   </h2>
 
   {% if results %}
     <div class="row">
       {% for p in results %}
-        <div class="col-md-4 mb-4 d-flex align-items-stretch">
+        <div class="col-md-4 mb-4 d-flex align-items-stretch" data-aos="zoom-in-up" data-aos-delay="{{ forloop.counter0|add:'100' }}">
           <div class="card search-result-card text-center w-100">
             {% if p.image %}
-              <img src="{{ p.image.url }}" alt="{{ p.name }}" class="card-img-top">
+              <img src="{{ p.image.url }}" alt="{{ p.name }}" class="card-img-top" loading="lazy">
             {% endif %}
             <div class="card-body d-flex flex-column">
               <h5 class="card-title">{{ p.name }}</h5>
               {% with p.variants.first as variant %}
                 {% if variant %}
-                  <p class="card-text price" data-raw-price="{{ variant.price }}"></p>
+                  <p class="price" data-raw-price="{{ variant.price }}"></p>
                 {% else %}
-                  <p class="card-text text-muted fst-italic">Liên hệ để biết giá</p>
+                  <p class="text-muted fst-italic">Liên hệ để biết giá</p>
                 {% endif %}
               {% endwith %}
               <a href="{% url 'product_detail' p.id %}" class="btn btn-outline-light btn-sm mt-auto">Xem chi tiết</a>
@@ -135,7 +132,7 @@
       {% endfor %}
     </div>
   {% else %}
-    <div class="alert alert-warning text-center">
+    <div class="alert alert-warning text-center" data-aos="fade-in">
       😢 Không tìm thấy sản phẩm nào khớp với từ khóa "<strong>{{ query }}</strong>".
     </div>
   {% endif %}
@@ -152,6 +149,17 @@
         }
       }
     });
+  });
+</script>
+
+<!-- AOS JS -->
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+  AOS.init({
+    duration: 800,
+    offset: 50,
+    easing: 'ease-in-out',
+    once: true
   });
 </script>
 {% endblock %}

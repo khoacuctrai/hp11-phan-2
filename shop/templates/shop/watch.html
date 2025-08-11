@@ -1,6 +1,9 @@
 {% extends 'shop/base.html' %}
 
 {% block content %}
+<!-- AOS CSS -->
+<link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
 <style>
   body {
     background: #17191d;
@@ -57,7 +60,6 @@
     color: #fff;
     background: none !important;
     text-shadow: 0 2px 12px #ffd70028, 0 1px 0 #1b1b1b;
-    -webkit-text-fill-color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -125,31 +127,30 @@
 </style>
 
 <div class="container mt-4">
-  <h2 class="product-title text-center">⌚ Watch</h2>
+  <h2 class="product-title text-center" data-aos="fade-down">⌚ Watch</h2>
   <div class="row">
     {% for product in products %}
-      <div class="col-md-4 col-sm-6 mb-4">
+      <div class="col-md-4 col-sm-6 mb-4" data-aos="zoom-in-up" data-aos-delay="{{ forloop.counter0|add:'100' }}">
         <div class="card-custom h-100">
-          <img src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}">
-          <h5>{{ product.name }}</h5>
+          <img src="{{ product.image.url }}" loading="lazy" class="img-fluid" alt="{{ product.name }}">
+          <h5 data-aos="fade-up" data-aos-delay="150">{{ product.name }}</h5>
           {% with product.variants.first as variant %}
             {% if variant %}
-              <p class="price" data-raw-price="{{ variant.price }}"></p>
+              <p class="price" data-raw-price="{{ variant.price }}" data-aos="fade-up" data-aos-delay="200"></p>
             {% else %}
-              <p class="text-muted fst-italic">Liên hệ để biết giá</p>
+              <p class="text-muted fst-italic" data-aos="fade-up" data-aos-delay="200">Liên hệ để biết giá</p>
             {% endif %}
           {% endwith %}
-          <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-light">Xem chi tiết</a>
+          <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-light" data-aos="fade-up" data-aos-delay="250">Xem chi tiết</a>
         </div>
       </div>
     {% empty %}
-      <p class="text-center text-white">Không có sản phẩm iPhone nào.</p>
+      <p class="text-center text-white" data-aos="fade-in">Không có sản phẩm iPhone nào.</p>
     {% endfor %}
   </div>
 
-  <!-- Phân trang hiện đại -->
   {% if products.has_other_pages %}
-    <nav aria-label="Page navigation">
+    <nav aria-label="Page navigation" data-aos="fade-up" data-aos-delay="150">
       <ul class="pagination justify-content-center">
         {% if products.has_previous %}
           <li class="page-item">
@@ -177,7 +178,7 @@
   {% endif %}
 </div>
 
-<!-- Định dạng giá tự động đẹp bằng JS -->
+<!-- Format giá -->
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll('.price').forEach(function (el) {
@@ -189,6 +190,17 @@
         }
       } 
     });
+  });
+</script>
+
+<!-- AOS JS -->
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+  AOS.init({
+    duration: 800,
+    offset: 50,
+    easing: 'ease-in-out',
+    once: true
   });
 </script>
 {% endblock %}
