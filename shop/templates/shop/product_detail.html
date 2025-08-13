@@ -1,4 +1,5 @@
 {% extends 'shop/base.html' %}
+{% load humanize %}
 {% block title %}{{ product.name }} - Chi tiết sản phẩm{% endblock %}
 
 {% block content %}
@@ -411,7 +412,7 @@
               </select>
             </div>
             <div class="product-price mb-2">
-              <span id="variant-price">{{ variants.0.price|floatformat:0 }}</span> VNĐ
+              <span id="variant-price">{{ variants.0.price|floatformat:0|intcomma }}</span> VNĐ
             </div>
             <div class="mb-3">
               <label for="quantity" class="form-label">Số lượng:</label>
@@ -437,7 +438,7 @@
           <form method="post" class="mt-3">
             {% csrf_token %}
             <div class="product-price mb-2">
-              <span id="base-price">{{ product.display_price|floatformat:0 }}</span> VNĐ
+              <span id="base-price">{{ product.display_price|floatformat:0|intcomma }}</span> VNĐ
             </div>
             <div class="mb-3">
               <label for="quantity" class="form-label">Số lượng:</label>
@@ -543,7 +544,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll(".related-price").forEach(function (el) {
     const raw = parseFloat(el.dataset.price);
     el.textContent = isNaN(raw) ? "Liên hệ" : raw.toLocaleString("vi-VN") + "₫";
-  });
+  }); 
 
   // Giá cho sản phẩm không biến thể
   var basePrice = document.getElementById("base-price");
