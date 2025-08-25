@@ -144,3 +144,18 @@ class CarouselImage(models.Model):
 
     def __str__(self):
         return self.title or f"Ảnh #{self.id}"
+    
+
+class Coupon(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    discount = models.PositiveIntegerField(help_text="Phần trăm giảm giá (0-100)")
+    active = models.BooleanField(default=True)
+    valid_from = models.DateTimeField()
+    valid_to = models.DateTimeField()
+
+    def is_valid(self):
+        now = timezone.now()
+        return self.active and self.valid_from <= now <= self.valid_to
+
+    def __str__(self):
+        return self.code

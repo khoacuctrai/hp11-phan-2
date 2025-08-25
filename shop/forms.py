@@ -69,3 +69,8 @@ def inventory_management(request):
     else:
         form = VariantStockUpdateForm()
     return render(request, 'shop/inventory_management.html', {'variants': variants, 'form': form})
+
+
+
+class CouponApplyForm(forms.Form):
+    code = forms.CharField(label="Mã giảm giá")

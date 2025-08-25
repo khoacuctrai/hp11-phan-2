@@ -21,6 +21,10 @@ from django.core.mail import send_mail
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils import timezone
 from django import forms
+from django.utils import timezone
+from django.contrib import messages
+from .models import Coupon
+from .forms import CouponApplyForm
 
 # ------------------ AJAX CART HANDLERS ---------------------
 @csrf_exempt
@@ -242,11 +246,30 @@ def cart_view(request):
             'price': price,
             'subtotal': subtotal,
         })
+
+    # --- Áp dụng coupon từ session ---
+    coupon_id = request.session.get('coupon_id')
+    discount_amount = 0
+    applied_coupon = None
+    if coupon_id:
+        try:
+            coupon = Coupon.objects.get(id=coupon_id)
+            if coupon.is_valid():
+                applied_coupon = coupon
+                discount_amount = int(total_price * (coupon.discount / 100))
+        except Coupon.DoesNotExist:
+            pass
+
+    final_price = total_price - discount_amount
+
     return render(request, 'shop/cart.html', {
         'items': items,
         'total_price': total_price,
+        'discount_amount': discount_amount,
+        'final_price': final_price,
+        'coupon': applied_coupon,
+        'coupon_form': CouponApplyForm(),
     })
-
 @login_required
 def checkout(request):
     cart_items = CartItem.objects.filter(user=request.user)
@@ -504,3 +527,21 @@ def search_products(request):
         'query': query,
         'results': results
     })
+
+
+
+def apply_coupon(request):
+    if request.method == 'POST':
+        form = CouponApplyForm(request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['code'].strip().upper()
+            try:
+                coupon = Coupon.objects.get(code__iexact=code)
+                if coupon.is_valid():
+                    request.session['coupon_id'] = coupon.id
+                    messages.success(request, f"Áp dụng mã {code} thành công!")
+                else:
+                    messages.error(request, "Mã giảm giá đã hết hạn hoặc không khả dụng.")
+            except Coupon.DoesNotExist:
+                messages.error(request, "Mã giảm giá không tồn tại.")
+    return redirect('cart')  # quay về trang giỏ hàng

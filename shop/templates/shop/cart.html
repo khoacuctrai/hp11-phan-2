@@ -5,71 +5,93 @@
   <h2>🍎 Giỏ hàng của bạn</h2>
   {% if items %}
   <div class="cart-container">
-    <table class="table table-hover">
-      <thead class="table-dark">
-        <tr>
-          <th>Sản phẩm</th>
-          <th>Số lượng</th>
-          <th>Thành tiền</th>
-          <th>Hành động</th>
-        </tr>
-      </thead>
-      <tbody id="cart-table-body">
-        {% for i in items %}
-        <tr data-item-id="{{ i.item.id }}" data-unit-price="{{ i.price }}">
-          <td>
-            <div class="product-info">
-              <strong>{{ i.item.product.name }}</strong>
-              {% if i.item.variant %}
-                <br><small class="text-muted">({{ i.item.variant.ram }} / {{ i.item.variant.storage }})</small>
-              {% endif %}
-            </div>
-          </td>
-          <td>
-            <div class="quantity-controls">
-              <button type="button" class="btn btn-sm btn-outline-secondary quantity-btn decrease-btn"
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th>Sản phẩm</th>
+            <th>Số lượng</th>
+            <th>Thành tiền</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="cart-table-body">
+          {% for i in items %}
+          <tr data-item-id="{{ i.item.id }}" data-unit-price="{{ i.price }}">
+            <td data-label="Sản phẩm">
+              <div class="product-info">
+                <strong>{{ i.item.product.name }}</strong>
+                {% if i.item.variant %}
+                  <br><small class="text-muted">({{ i.item.variant.ram }} / {{ i.item.variant.storage }})</small>
+                {% endif %}
+              </div>
+            </td>
+            <td data-label="Số lượng">
+              <div class="quantity-controls">
+                <button type="button" class="btn btn-sm btn-outline-secondary quantity-btn decrease-btn"
+                        data-item-id="{{ i.item.id }}"
+                        data-url="{% url 'decrease_quantity' i.item.id %}">
+                  &minus;
+                </button>
+                <span class="quantity-display" data-item-id="{{ i.item.id }}">{{ i.item.quantity }}</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary quantity-btn increase-btn"
+                        data-item-id="{{ i.item.id }}"
+                        data-url="{% url 'increase_quantity' i.item.id %}">
+                  +
+                </button>
+              </div>
+            </td>
+            <td class="currency" data-label="Thành tiền">
+              <div class="price-calculation">
+                <span class="unit-price js-money" data-item-id="{{ i.item.id }}">{{ i.price }}</span> × 
+                <span class="quantity-text" data-item-id="{{ i.item.id }}">{{ i.item.quantity }}</span> = 
+                <span class="subtotal-price js-money price-blink" data-item-id="{{ i.item.id }}">{{ i.subtotal }}</span>
+              </div>
+            </td>
+            <td data-label="Hành động">
+              <button type="button" class="btn btn-danger btn-sm remove-btn"
                       data-item-id="{{ i.item.id }}"
-                      data-url="{% url 'decrease_quantity' i.item.id %}">
-                &minus;
+                      data-url="{% url 'remove_from_cart' i.item.id %}">
+                Bỏ hàng
               </button>
-              <span class="quantity-display" data-item-id="{{ i.item.id }}">{{ i.item.quantity }}</span>
-              <button type="button" class="btn btn-sm btn-outline-secondary quantity-btn increase-btn"
-                      data-item-id="{{ i.item.id }}"
-                      data-url="{% url 'increase_quantity' i.item.id %}">
-                +
-              </button>
-            </div>
-          </td>
-          <td class="currency">
-            <div class="price-calculation">
-              <span class="unit-price js-money" data-item-id="{{ i.item.id }}">{{ i.price }}</span> × 
-              <span class="quantity-text" data-item-id="{{ i.item.id }}">{{ i.item.quantity }}</span> = 
-              <span class="subtotal-price js-money price-blink" data-item-id="{{ i.item.id }}">{{ i.subtotal }}</span>
-            </div>
-          </td>
-          <td>
-            <button type="button" class="btn btn-danger btn-sm remove-btn"
-                    data-item-id="{{ i.item.id }}"
-                    data-url="{% url 'remove_from_cart' i.item.id %}">
-              Bỏ hàng
-            </button>
-          </td>
-        </tr>
-        {% endfor %}
-        <tr class="total-row">
-          <td colspan="2"><strong>Tổng cộng:</strong></td>
-          <td class="currency total-price" colspan="2">
-            <span class="final-total js-money price-blink" id="cart-total">{{ total_price }}</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </td>
+          </tr>
+          {% endfor %}
+          <tr class="total-row">
+            <td colspan="2"><strong>Tổng cộng:</strong></td>
+            <td class="currency total-price" colspan="2">
+              <span class="final-total js-money price-blink" id="cart-total">{{ total_price }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <tr>
+  <td colspan="2"><strong>Giảm giá:</strong></td>
+  <td colspan="2">
+    {% if coupon %}
+      <span class="text-success">-{{ discount_amount|floatformat:0 }}đ ({{ coupon.code }})</span>
+    {% else %}
+<form action="{% url 'apply_coupon' %}" method="post" class="d-flex gap-2">
+  {% csrf_token %}
+  {{ coupon_form.code }}
+  <button type="submit" class="btn btn-outline-primary btn-sm">Áp dụng</button>
+</form>
+    {% endif %}
+  </td>
+</tr>
+<tr class="total-row">
+  <td colspan="2"><strong>Thanh toán:</strong></td>
+  <td class="currency" colspan="2">
+    <span class="final-total js-money price-blink" id="cart-final">{{ final_price }}</span>
+  </td>
+</tr>
+
     <div class="checkout-section">
       <a href="{% url 'checkout' %}" class="btn btn-primary btn-lg checkout-btn" id="checkout-btn">
         <i class="fas fa-credit-card"></i> Thanh toán
       </a>
-
-            <a href="{% url 'qr_payment' %}" class="btn btn-success btn-lg ml-3">
+      <a href="{% url 'qr_payment' %}" class="btn btn-success btn-lg ml-3">
         <i class="fas fa-qrcode"></i> Thanh toán bằng QR
       </a>
     </div>
@@ -146,6 +168,40 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .price-blink { transition: background 0.2s;}
   .price-blink.active { background: #ffe484; border-radius: 4px; }
+
+  /* Responsive mobile */
+  @media (max-width: 768px) {
+    table.table thead { display: none; }
+    table.table tbody tr {
+      display: block;
+      margin-bottom: 15px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+    }
+    table.table tbody tr td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border: none;
+    }
+    table.table tbody tr td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: #495057;
+    }
+    .checkout-section {
+      text-align: center;
+    }
+    .checkout-btn,
+    .checkout-section .btn {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+  }
+}
 </style>
 
 <script>

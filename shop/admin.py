@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Product, ProductVariant, CartItem, Comment, Order, OrderItem, Feedback,ProductColor
 from .models import CarouselImage
+from .models import Coupon
 #khai báo class ở model trong db
 # Quản lý sản phẩm chính
 class ProductAdmin(admin.ModelAdmin):
@@ -35,3 +36,10 @@ class CarouselImageAdmin(admin.ModelAdmin):
     list_display = ("id", "title", "is_active", "created_at")
     list_filter = ("is_active",)
     search_fields = ("title", "caption")
+
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ('code', 'discount', 'valid_from', 'valid_to', 'active')
+    search_fields = ('code',)
+    list_filter = ('active', 'valid_from', 'valid_to')

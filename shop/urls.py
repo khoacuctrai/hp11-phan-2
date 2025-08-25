@@ -44,7 +44,7 @@ urlpatterns = [
 
     # ✅ Tìm kiếm
     path('search/', views.search_products, name='search_products'),
+    path("apply-coupon/", views.apply_coupon, name="apply_coupon"),
 
   
 ]
-
