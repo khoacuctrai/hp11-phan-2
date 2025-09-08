@@ -2,8 +2,8 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
+from django.http import Http404  # nếu không dùng có thể xoá
 from . import views
-from django.http import Http404
 
 urlpatterns = [
     # Trang chủ
@@ -13,6 +13,8 @@ urlpatterns = [
     path('signup/', views.signup_view, name='signup'),
     path('login/', auth_views.LoginView.as_view(template_name='shop/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name='shop/logout.html'), name='logout'),
+    # Nếu bạn muốn dùng logout qua POST do bạn có views.logout_view:
+    # path('logout/', views.logout_view, name='logout'),
 
     # ✅ Chi tiết & giỏ hàng
     path('product/<int:pk>/', views.product_detail, name='product_detail'),
@@ -21,6 +23,10 @@ urlpatterns = [
     path('cart/increase/<int:item_id>/', views.increase_quantity, name='increase_quantity'),
     path('cart/decrease/<int:item_id>/', views.decrease_quantity, name='decrease_quantity'),
     path('cart/remove/<int:item_id>/', views.remove_from_cart, name='remove_from_cart'),
+
+    # ✅ Mã giảm giá (NEW)
+    path('coupon/apply/', views.apply_coupon, name='apply_coupon'),
+    path('coupon/clear/', views.clear_coupon, name='clear_coupon'),
 
     # ✅ Đơn hàng
     path('checkout/', views.checkout, name='checkout'),
@@ -38,13 +44,15 @@ urlpatterns = [
     path('audio/', views.audio_products, name='audio_products'),
     path('accessory/', views.accessory_products, name='accessory_products'),
 
-    # ✅ Góp ý
+    # ✅ Góp ý & tồn kho
     path('feedback/', views.feedback_view, name='feedback'),
     path('inventory/', views.inventory_management, name='inventory_management'),
 
     # ✅ Tìm kiếm
     path('search/', views.search_products, name='search_products'),
-    path("apply-coupon/", views.apply_coupon, name="apply_coupon"),
-
-  
 ]
+
+# Phục vụ media/static khi DEBUG
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=getattr(settings, 'STATIC_ROOT', 'static'))

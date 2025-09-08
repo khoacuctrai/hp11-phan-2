@@ -3,85 +3,14 @@
 
 {% block content %}
 <style>
-  body {
-    background: #17191d;
-    color: #fff;
-  }
-  .checkout-card {
-    background: linear-gradient(120deg, #22242a 90%, #191a1c 100%);
-    border-radius: 22px;
-    box-shadow: 0 9px 32px #28df9952, 0 2px 9px #0005;
-    border: none;
-    padding: 0;
-  }
-  .checkout-card .card-body {
-    padding: 36px 38px 28px 38px;
-  }
-  .checkout-title {
-    color: #44f47e;
-    font-size: 2.1rem;
-    font-weight: 900;
-    letter-spacing: .02em;
-    margin-bottom: 30px;
-    text-shadow: 0 2px 15px #44f47e18;
-  }
-  .form-label {
-    color: #ffe066;
-    font-weight: 600;
-    margin-bottom: 5px;
-    font-size: 1.08rem;
-  }
-  .form-control {
-    background: #22262c;
-    border: 1.6px solid #30353a;
-    color: #fff;
-    border-radius: 11px;
-    font-size: 1.13rem;
-    transition: border .17s, background .16s;
-    margin-bottom: 7px;
-  }
-  .form-control:focus {
-    border: 1.6px solid #44f47e;
-    background: #24262c;
-    color: #fff;
-    box-shadow: 0 0 0 0.13rem #44f47e44;
-  }
-  .btn-checkout {
-    background: linear-gradient(90deg, #44f47e 70%, #00c87c 100%);
-    color: #181a1b;
-    font-weight: 800;
-    font-size: 1.19rem;
-    border: none;
-    border-radius: 11px;
-    box-shadow: 0 3px 16px #44f47e25;
-    padding: 13px 0;
-    transition: background .17s, color .17s, transform .15s;
-    letter-spacing: .02em;
-  }
-  .btn-checkout:hover {
-    background: linear-gradient(90deg, #44f47e 80%, #fff59d 100%);
-    color: #23262a;
-    transform: scale(1.03);
-    box-shadow: 0 7px 22px #44f47e33;
-  }
-  .form-error {
-    color: #ff4da6;
-    font-size: .97rem;
-    margin-bottom: 5px;
-    margin-top: -2px;
-    animation: shakeError .28s;
-  }
-  @keyframes shakeError {
-    0% { transform: translateX(0);}
-    24% { transform: translateX(-7px);}
-    48% { transform: translateX(7px);}
-    72% { transform: translateX(-4px);}
-    100% { transform: translateX(0);}
-  }
-  @media (max-width: 700px) {
-    .checkout-card .card-body { padding: 23px 6vw 18px 6vw;}
-    .checkout-title { font-size: 1.28rem;}
-  }
+  body { background: #17191d; color: #fff; }
+  .checkout-card { background: linear-gradient(120deg, #22242a 90%, #191a1c 100%); border-radius: 22px; box-shadow: 0 9px 32px #28df9952, 0 2px 9px #0005; border: none; }
+  .checkout-card .card-body { padding: 36px 38px 28px 38px; }
+  .checkout-title { color: #44f47e; font-size: 2.1rem; font-weight: 900; margin-bottom: 30px; }
+  .form-label { color: #ffe066; font-weight: 600; }
+  .form-control { background: #22262c; border: 1.6px solid #30353a; color: #fff; border-radius: 11px; font-size: 1.13rem; margin-bottom: 7px; }
+  .form-control:focus { border-color: #44f47e; box-shadow: 0 0 0 0.13rem #44f47e44; }
+  .btn-checkout { background: linear-gradient(90deg, #44f47e 70%, #00c87c 100%); color: #181a1b; font-weight: 800; font-size: 1.19rem; border: none; border-radius: 11px; padding: 13px 0; }
 </style>
 
 <div class="container my-5">
@@ -90,23 +19,28 @@
       <div class="card checkout-card shadow">
         <div class="card-body">
           <h2 class="checkout-title text-center mb-4">🧾 Thông tin đặt hàng</h2>
+
+          {% if coupon %}
+            <div class="alert alert-success py-2">Áp dụng mã: <strong>{{ coupon.code }}</strong> (−{{ coupon.discount }}%)</div>
+          {% endif %}
+
+          <ul class="list-group mb-3">
+            <li class="list-group-item d-flex justify-content-between"><span>Tạm tính</span><strong class="money-format">{{ subtotal }}</strong></li>
+            <li class="list-group-item d-flex justify-content-between"><span>Giảm giá</span><strong class="money-format">{{ discount_amount }}</strong></li>
+            <li class="list-group-item d-flex justify-content-between"><span>Thanh toán</span><strong class="money-format">{{ final_total }}</strong></li>
+          </ul>
+
           <form method="post" novalidate>
             {% csrf_token %}
-
             {% for field in form %}
               <div class="mb-3">
                 <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
                 {{ field }}
-                {% if field.errors %}
-                  <div class="form-error">{{ field.errors|striptags }}</div>
-                {% endif %}
+                {% if field.errors %}<div class="form-error">{{ field.errors|striptags }}</div>{% endif %}
               </div>
             {% endfor %}
-
             <div class="d-grid mt-4">
-              <button type="submit" class="btn btn-checkout btn-lg">
-                ✅ Xác nhận đặt hàng
-              </button>
+              <button type="submit" class="btn btn-checkout btn-lg">✅ Xác nhận đặt hàng</button>
             </div>
           </form>
         </div>
@@ -114,4 +48,10 @@
     </div>
   </div>
 </div>
+<script>
+  document.querySelectorAll('.money-format').forEach(el=>{
+    const num = el.textContent.replace(/[^0-9]/g,'');
+    if(num) el.textContent = Number(num).toLocaleString('vi-VN') + 'đ';
+  });
+</script>
 {% endblock %}

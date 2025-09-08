@@ -92,6 +92,20 @@ class CommentReaction(models.Model):
     def __str__(self):
         return f"{self.user.username} {self.reaction} on comment {self.comment.id}"
 
+class Coupon(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    discount = models.PositiveIntegerField(help_text="Phần trăm giảm giá (0-100)")
+    active = models.BooleanField(default=True)
+    valid_from = models.DateTimeField()
+    valid_to = models.DateTimeField()
+
+    def is_valid(self):
+        now = timezone.now()
+        return self.active and self.valid_from <= now <= self.valid_to
+
+    def __str__(self):
+        return self.code
+
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -103,8 +117,15 @@ class Order(models.Model):
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
 
+    # Lưu thông tin giảm giá đã áp dụng
+    coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
+    discount_percent = models.PositiveIntegerField(default=0)
+    subtotal_before_discount = models.PositiveIntegerField(default=0)
+    discount_amount = models.PositiveIntegerField(default=0)
+    total_after_discount = models.PositiveIntegerField(default=0)
+
     def total_price(self):
-        return sum(item.total() for item in self.items.all())
+        return self.total_after_discount or sum(item.total() for item in self.items.all())
 
     def __str__(self):
         return f"Đơn hàng #{self.id} của {self.user.username}"
@@ -144,18 +165,3 @@ class CarouselImage(models.Model):
 
     def __str__(self):
         return self.title or f"Ảnh #{self.id}"
-    
-
-class Coupon(models.Model):
-    code = models.CharField(max_length=50, unique=True)
-    discount = models.PositiveIntegerField(help_text="Phần trăm giảm giá (0-100)")
-    active = models.BooleanField(default=True)
-    valid_from = models.DateTimeField()
-    valid_to = models.DateTimeField()
-
-    def is_valid(self):
-        now = timezone.now()
-        return self.active and self.valid_from <= now <= self.valid_to
-
-    def __str__(self):
-        return self.code

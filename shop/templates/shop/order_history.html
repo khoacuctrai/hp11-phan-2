@@ -3,171 +3,104 @@
 
 {% block content %}
 <style>
-  body {
-    background: #191c1f;
+  :root{
+    --bg:#191c1f; --card:#23272b; --card2:#20222a; --text:#e6eef7; --muted:#a7b3c6;
+    --primary:#58b2ff; --primary-2:#2e6cb9; --accent:#44f47e; --warning:#ffde48; --danger:#ff5e7a;
+    --border:rgba(255,255,255,.08); --shadow:0 10px 35px rgba(0,0,0,.25); --glass:rgba(255,255,255,.06);
   }
-  .order-history-container {
-    max-width: 680px;
-    margin: 50px auto 32px auto;
-    padding: 0 8px;
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f5f7fb; --card:#ffffff; --card2:#fafbff; --text:#0c1b2a; --muted:#4a5568;
+      --primary:#2e6cb9; --primary-2:#1f5aa0; --accent:#12b886; --warning:#b08900; --danger:#c92a2a;
+      --border:rgba(0,0,0,.08); --shadow:0 10px 35px rgba(30,60,90,.12); --glass:rgba(0,0,0,.04);
+    }
   }
-  .order-card {
-    background: linear-gradient(110deg, #23272b 80%, #20222a 100%);
-    border-radius: 20px;
-    box-shadow: 0 6px 32px 0 rgba(38,115,234,0.08), 0 1.5px 6px 0 rgba(50,82,168,0.04);
-    margin-bottom: 32px;
-    transition: box-shadow .33s cubic-bezier(.38,.7,.47,1.03), transform .21s;
-    position: relative;
-    overflow: hidden;
-    animation: fadeInUp 1.2s cubic-bezier(.42,.77,.4,1.09);
-  }
-  .order-card:hover {
-    box-shadow: 0 12px 40px 0 rgba(38,115,234,0.18), 0 3px 16px 0 rgba(50,82,168,0.11);
-    transform: translateY(-3px) scale(1.01);
-  }
-  .order-card .card-header {
-    background: linear-gradient(90deg, #2e6cb9 0, #3c8bb9 100%);
-    color: #fff;
-    border-radius: 20px 20px 0 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    padding: 18px 26px 12px 26px;
-    letter-spacing: 0.01em;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: none;
-  }
-  .order-card .card-body {
-    padding: 20px 26px 24px 26px;
-  }
-  .order-card strong, .order-card h6, .order-card h2 {
-    color: #38ccfd;
-  }
-  .order-card .order-id {
-    font-size: 1.09rem;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .order-card .order-date {
-    font-size: 0.99rem;
-    font-weight: 400;
-    color: #e0e7ee;
-  }
-  .order-card .customer-info p {
-    margin-bottom: 0.25rem;
-    color: #e6f0fd;
-    font-size: 1.04rem;
-  }
-  .order-card .customer-info strong {
-    color: #7edaff;
-    font-weight: 600;
-  }
-  .order-card hr {
-    border-color: #244b6e;
-    opacity: .6;
-  }
-  .order-card h6 {
-    font-size: 1.07rem;
-    margin-bottom: 0.6rem;
-    color: #8bd7ff;
-    font-weight: 700;
-    letter-spacing: .03em;
-  }
-  .order-card .product-list {
-    padding-left: 0;
-    margin-bottom: 0;
-  }
-  .order-card .product-list li {
-    background: rgba(37,63,90,0.7);
-    color: #f5fcff;
-    border: 1px solid #233850;
-    border-radius: 7px;
-    padding: 8px 14px;
-    margin-bottom: 7px;
-    font-size: 1.01rem;
-    list-style: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    animation: fadeInProduct .7s;
-  }
-  @keyframes fadeInProduct {
-    from { opacity: 0; transform: translateY(10px);}
-    to { opacity: 1; transform: translateY(0);}
-  }
-  .order-card .total-price-row {
-    margin-top: 17px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 10px;
-  }
-  .order-card .total-price-label {
-    color: #89b6f5;
-    font-size: 1.05rem;
-  }
-  .order-card .total-price-value {
-    font-size: 1.38rem;
-    font-weight: 700;
-    color: #ffde48;
-    background: linear-gradient(90deg, #fcf7ce 20%, #ffe599 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: .02em;
-    transition: color .3s;
-  }
-  /* Empty state */
-  .empty-orders {
-    color: #b9dbfa;
-    text-align: center;
-    margin-top: 70px;
-    font-size: 1.16rem;
-    font-style: italic;
-    animation: fadeInEmpty .7s;
-  }
-  @keyframes fadeInUp {
-    from {opacity:0; transform:translateY(34px);}
-    to {opacity:1; transform:translateY(0);}
-  }
-  @keyframes fadeInEmpty {
-    from {opacity:0; transform:scale(.97);}
-    to {opacity:1; transform:scale(1);}
-  }
-  /* Responsive */
-  @media (max-width: 600px) {
-    .order-card .card-header, .order-card .card-body {padding: 13px 6vw;}
-    .order-card {border-radius: 15px;}
-    .order-card .card-header {font-size: .97rem;}
-    .order-card .card-body {font-size: .97rem;}
-  }
+  body { background: var(--bg); color: var(--text); }
+  .oh-wrap{ max-width: 920px; margin: 38px auto 36px; padding: 0 14px; }
+  .oh-title{ font-size: clamp(1.35rem, 2.4vw, 1.9rem); font-weight:800; letter-spacing:.2px;
+             background: linear-gradient(92deg,var(--primary),#7dd3fc 48%,var(--accent));
+             -webkit-background-clip: text; -webkit-text-fill-color: transparent; display:flex; gap:8px; }
+  .order-card{ background: linear-gradient(110deg, var(--card) 78%, var(--card2) 100%);
+               border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow);
+               margin-bottom:16px; overflow:hidden; transform:translateY(8px); opacity:0;
+               animation: slideUp .6s ease forwards; }
+  @keyframes slideUp{ to { transform: translateY(0); opacity: 1; } }
+  .order-head{ background: linear-gradient(90deg, var(--primary-2) 0, var(--primary) 100%); color:#fff;
+               padding:14px 18px; display:flex; align-items:center; justify-content:space-between; }
+  .order-id{ font-weight:700; display:flex; align-items:center; gap:8px; }
+  .order-date{ opacity:.95; font-weight:600; }
+  .order-body{ padding:16px 18px 6px 18px; }
+  .info-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 16px; }
+  .info-grid p{ margin:0; } .info-grid strong{ color:#9bd5ff; font-weight:700; }
+  .badge{ display:inline-flex; align-items:center; gap:6px; font-size:.86rem; padding:6px 10px;
+          border-radius:999px; border:1px solid var(--border); background:var(--glass); }
+  .badge-success{ color:#17c964; border-color:#17c96440; background:#17c96415; }
+  .badge-danger{ color:var(--danger); border-color:#ff5e7a40; background:#ff5e7a15; }
+  .coupon-pill{ display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px;
+                background:linear-gradient(90deg,#0ea5e9 0,#22d3ee 100%); color:#072b3a; font-weight:800; margin:.3rem 0 .6rem; }
+  .toggle{ display:flex; align-items:center; gap:10px; margin-top:10px; }
+  .btn{ position:relative; overflow:hidden; border:1px solid var(--border); background:var(--glass); color:inherit;
+        padding:9px 14px; border-radius:12px; font-weight:700; cursor:pointer; transition:.2s transform,.2s filter; }
+  .btn:hover{ filter:brightness(1.06); transform:translateY(-1px); }
+  .btn-primary{ background:linear-gradient(90deg,var(--primary) 0,#7dd3fc 100%); color:#08121f; border:none; }
+  .products{ margin:10px 0 6px; padding:0; list-style:none; display:grid; gap:8px; }
+  .products li{ display:flex; align-items:center; justify-content:space-between; border:1px dashed var(--border);
+                background:var(--glass); border-radius:10px; padding:9px 12px; }
+  .totals{ display:grid; gap:6px; margin-top:12px; justify-content:end; text-align:right; }
+  .total-line{ display:flex; align-items:center; justify-content:flex-end; gap:10px; }
+  .total-label{ color:var(--muted); font-weight:600; }
+  .total-value{ font-weight:800; }
+  .total-grand{ font-size:1.25rem; color:var(--warning);
+                background:linear-gradient(90deg,#fcf7ce 20%,#ffe599 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .skeleton{ background:linear-gradient(100deg,var(--glass) 30%,rgba(255,255,255,.15) 45%,var(--glass) 60%) no-repeat;
+             background-size:200% 100%; animation:shine 1.2s infinite; }
+  @keyframes shine{ to{ background-position-x:-200%; } }
+  .empty{ text-align:center; color:var(--muted); font-style:italic; padding:38px 12px; }
+  @media (max-width:720px){ .info-grid{ grid-template-columns:1fr; } }
 </style>
 
-<div class="order-history-container">
-  <h2 class="text-center mb-4" style="color:#5bc0ff;font-weight:600;">
-    🧾 Lịch sử đơn hàng
-  </h2>
+<div class="oh-wrap">
+  <div class="oh-title">🧾 Lịch sử đơn hàng</div>
 
   {% if orders %}
     {% for order in orders %}
-      <div class="order-card">
-        <div class="card-header">
-          <span class="order-id">
-            <span style="font-size:1.19em;">🛍️</span> Đơn hàng #{{ order.id }}
+    <div class="order-card"
+         data-order-id="{{ order.id }}"
+         data-status="{% if order.is_paid %}paid{% else %}unpaid{% endif %}">
+      <div class="order-head">
+        <div class="order-id">
+          <span>🛍️</span> <span>Đơn hàng #{{ order.id }}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="badge {% if order.is_paid %}badge-success{% else %}badge-danger{% endif %}">
+            {% if order.is_paid %}ĐÃ THANH TOÁN{% else %}CHƯA THANH TOÁN{% endif %}
           </span>
           <span class="order-date">{{ order.created_at|date:"d/m/Y H:i" }}</span>
         </div>
-        <div class="card-body">
-          <div class="customer-info mb-3">
-            <p><strong>👤</strong> {{ order.full_name }}</p>
-            <p><strong>📧</strong> {{ order.email }}</p>
-            <p><strong>📞</strong> {{ order.phone }}</p>
-            <p><strong>📍</strong> {{ order.address }}</p>
+      </div>
+
+      <div class="order-body">
+        <div class="info-grid">
+          <p><strong>👤</strong> {{ order.full_name }}</p>
+          <p><strong>📧</strong> {{ order.email }}</p>
+          <p><strong>📞</strong> {{ order.phone }}</p>
+          <p><strong>📍</strong> {{ order.address }}</p>
+        </div>
+
+        {% if order.coupon %}
+          <div class="coupon-pill">Mã: {{ order.coupon.code }} • −{{ order.discount_percent }}%</div>
+        {% endif %}
+
+        <div class="toggle">
+          <button class="btn btn-ghost js-toggle" type="button" aria-expanded="false">Xem chi tiết</button>
+          <div class="tools" style="display:flex; gap:8px;">
+          
           </div>
-          <hr>
-          <h6>🛒 Sản phẩm:</h6>
-          <ul class="product-list">
+        </div>
+
+        <div class="details" style="display:none; margin-top:10px;">
+          <h6 style="margin:8px 0 6px;">🛒 Sản phẩm</h6>
+          <ul class="products">
             {% for item in order.items.all %}
               <li>
                 <span>{{ item.product.name }}</span>
@@ -175,26 +108,69 @@
               </li>
             {% endfor %}
           </ul>
-          <div class="total-price-row">
-            <span class="total-price-label">Tổng tiền:</span>
-            <span class="total-price-value money-format">{{ order.total_price }}</span>
-            <span class="total-price-label">đ</span>
+
+          <div class="totals">
+            <div class="total-line">
+              <span class="total-label">Tạm tính</span>
+              <span class="total-value money">{{ order.subtotal_before_discount }}</span>
+            </div>
+            <div class="total-line">
+              <span class="total-label">Giảm giá</span>
+              <span class="total-value money">-{{ order.discount_amount }}</span>
+            </div>
+            <div class="total-line">
+              <span class="total-label">Thanh toán</span>
+              <span class="total-value money total-grand">{{ order.total_after_discount }}</span>
+            </div>
           </div>
         </div>
       </div>
+    </div>
     {% endfor %}
   {% else %}
-    <div class="empty-orders">Bạn chưa có đơn hàng nào.</div>
+    <div class="order-card skeleton" style="height:120px;"></div>
+    <div class="order-card skeleton" style="height:120px;"></div>
+    <div class="order-card skeleton" style="height:120px;"></div>
+    <div class="empty">Bạn chưa có đơn hàng nào.</div>
   {% endif %}
 </div>
 
 <script>
-  // Định dạng tiền Việt tự động cho các thẻ có class 'money-format'
-  document.querySelectorAll('.money-format').forEach(function(el){
-    let num = el.textContent.replace(/[^0-9.]/g, '');
-    if(num) {
-      el.textContent = Number(num).toLocaleString('vi-VN');
-    }
+(function(){
+  const fmt = n => Number(String(n).replace(/[^\d]/g,'')||0).toLocaleString('vi-VN')+'đ';
+  document.querySelectorAll('.money').forEach(el => el.textContent = fmt(el.textContent));
+
+  // Ripple
+  document.addEventListener('click', e=>{
+    const btn = e.target.closest('.btn'); if(!btn) return;
+    const r = document.createElement('span'); r.className = 'ripple';
+    const rect = btn.getBoundingClientRect();
+    r.style.left = (e.clientX - rect.left) + 'px';
+    r.style.top  = (e.clientY - rect.top)  + 'px';
+    r.style.width = r.style.height = Math.max(rect.width, rect.height) + 'px';
+    btn.appendChild(r); setTimeout(()=>r.remove(), 650);
   });
+
+  // Toggle details
+  document.querySelectorAll('.js-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const details = btn.closest('.order-body').querySelector('.details');
+      const isOpen = details.style.display !== 'none';
+      details.style.display = isOpen ? 'none' : 'block';
+      btn.setAttribute('aria-expanded', String(!isOpen));
+      btn.textContent = isOpen ? 'Xem chi tiết' : 'Ẩn chi tiết';
+    });
+  });
+
+  // Copy order id
+  document.querySelectorAll('.js-copy').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const val = btn.dataset.copy;
+      try { await navigator.clipboard.writeText(val); btn.textContent = '✅ Đã copy';
+            setTimeout(()=>btn.textContent='Copy mã', 1200); }
+      catch { alert('Không copy được, vui lòng copy thủ công.'); }
+    });
+  });
+})();
 </script>
 {% endblock %}

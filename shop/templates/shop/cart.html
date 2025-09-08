@@ -3,6 +3,10 @@
 {% block content %}
 <div class="container mt-4">
   <h2>🍎 Giỏ hàng của bạn</h2>
+
+  <!-- Expose CSRF for AJAX -->
+  <form style="display:none">{% csrf_token %}</form>
+
   {% if items %}
   <div class="cart-container">
     <div class="table-responsive">
@@ -22,7 +26,7 @@
               <div class="product-info">
                 <strong>{{ i.item.product.name }}</strong>
                 {% if i.item.variant %}
-                  <br><small class="text-muted">({{ i.item.variant.ram }} / {{ i.item.variant.storage }})</small>
+                  <br><small class="text-muted">({{ i.item.variant.storage }})</small>
                 {% endif %}
               </div>
             </td>
@@ -30,15 +34,11 @@
               <div class="quantity-controls">
                 <button type="button" class="btn btn-sm btn-outline-secondary quantity-btn decrease-btn"
                         data-item-id="{{ i.item.id }}"
-                        data-url="{% url 'decrease_quantity' i.item.id %}">
-                  &minus;
-                </button>
+                        data-url="{% url 'decrease_quantity' i.item.id %}">−</button>
                 <span class="quantity-display" data-item-id="{{ i.item.id }}">{{ i.item.quantity }}</span>
                 <button type="button" class="btn btn-sm btn-outline-secondary quantity-btn increase-btn"
                         data-item-id="{{ i.item.id }}"
-                        data-url="{% url 'increase_quantity' i.item.id %}">
-                  +
-                </button>
+                        data-url="{% url 'increase_quantity' i.item.id %}">+</button>
               </div>
             </td>
             <td class="currency" data-label="Thành tiền">
@@ -57,41 +57,49 @@
             </td>
           </tr>
           {% endfor %}
+
           <tr class="total-row">
-            <td colspan="2"><strong>Tổng cộng:</strong></td>
-            <td class="currency total-price" colspan="2">
+            <td colspan="2"><strong>Tạm tính:</strong></td>
+            <td class="currency" colspan="2">
               <span class="final-total js-money price-blink" id="cart-total">{{ total_price }}</span>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2"><strong>Giảm giá:</strong></td>
+            <td colspan="2">
+              {% if coupon %}
+                <span class="text-success" id="discount-line">
+                  -<span id="discount-amount" class="js-money">{{ discount_amount }}</span>
+                  ({{ coupon.code }})
+                </span>
+                <form action="{% url 'clear_coupon' %}" method="post" class="d-inline ms-2">
+                  {% csrf_token %}
+                  <button class="btn btn-link btn-sm">Hủy mã</button>
+                </form>
+              {% else %}
+                <form action="{% url 'apply_coupon' %}" method="post" class="d-flex gap-2" id="coupon-form">
+                  {% csrf_token %}
+                  {{ coupon_form.code }}
+                  <button type="submit" class="btn btn-outline-primary btn-sm">Áp dụng</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+          <tr class="total-row">
+            <td colspan="2"><strong>Thanh toán:</strong></td>
+            <td class="currency" colspan="2">
+              <span class="final-total js-money price-blink" id="cart-final">{{ final_price }}</span>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <tr>
-  <td colspan="2"><strong>Giảm giá:</strong></td>
-  <td colspan="2">
-    {% if coupon %}
-      <span class="text-success">-{{ discount_amount|floatformat:0 }}đ ({{ coupon.code }})</span>
-    {% else %}
-<form action="{% url 'apply_coupon' %}" method="post" class="d-flex gap-2">
-  {% csrf_token %}
-  {{ coupon_form.code }}
-  <button type="submit" class="btn btn-outline-primary btn-sm">Áp dụng</button>
-</form>
-    {% endif %}
-  </td>
-</tr>
-<tr class="total-row">
-  <td colspan="2"><strong>Thanh toán:</strong></td>
-  <td class="currency" colspan="2">
-    <span class="final-total js-money price-blink" id="cart-final">{{ final_price }}</span>
-  </td>
-</tr>
 
     <div class="checkout-section">
       <a href="{% url 'checkout' %}" class="btn btn-primary btn-lg checkout-btn" id="checkout-btn">
         <i class="fas fa-credit-card"></i> Thanh toán
       </a>
-      <a href="{% url 'qr_payment' %}" class="btn btn-success btn-lg ml-3">
+      <a href="{% url 'qr_payment' %}" class="btn btn-success btn-lg ms-2">
         <i class="fas fa-qrcode"></i> Thanh toán bằng QR
       </a>
     </div>
@@ -105,128 +113,33 @@
   {% endif %}
 </div>
 
-<!-- Loading overlay -->
 <div class="loading-overlay" id="loading-overlay">
   <div class="spinner"></div>
 </div>
 
 <style>
-  .cart-container {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    padding: 20px;
-    margin-top: 20px;
-  }
-  .quantity-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .quantity-btn {
-    width: 34px; height: 34px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem; font-weight: bold;
-    transition: background .2s, transform .2s;
-  }
-  .quantity-btn:hover { background: #e9ecef; transform: scale(1.12);}
-  .quantity-display {
-    font-size: 1.1rem; font-weight: bold;
-    background: #f8f9fa;
-    padding: 7px 16px; border-radius: 5px; border: 1px solid #dee2e6;
-  }
-  .price-calculation {
-    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  }
-  .js-money {
-    color: #dc3545;
-    font-weight: bold;
-    font-family: inherit;
-    transition: color 0.3s;
-  }
-  .subtotal-price, .final-total {
-    font-size: 1.4rem;
-    color: #dc3545;
-    font-weight: 900;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.07);
-  }
-  .total-row { background: #f9f9f9; border-top: 2px solid #dee2e6; }
-  .checkout-section { text-align: right; margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; }
-  .checkout-btn { padding: 12px 30px; font-size: 1.05rem; border-radius: 24px; box-shadow: 0 2px 10px rgba(0,123,255,0.09);}
-  .empty-cart { text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 12px; margin-top: 30px;}
-  .empty-cart-icon { font-size: 4rem; margin-bottom: 20px;}
-  .empty-cart-message { font-size: 1.3rem; color: #6c757d; margin-bottom: 30px;}
-  .loading-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.35); display: none; justify-content: center; align-items: center; z-index: 9999;
-  }
-  .spinner {
-    width: 52px; height: 52px;
-    border: 6px solid #f3f3f3; border-top: 6px solid #007bff;
-    border-radius: 50%; animation: spin 1s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .price-blink { transition: background 0.2s;}
-  .price-blink.active { background: #ffe484; border-radius: 4px; }
-
-  /* Responsive mobile */
-  @media (max-width: 768px) {
-    table.table thead { display: none; }
-    table.table tbody tr {
-      display: block;
-      margin-bottom: 15px;
-      border: 1px solid #dee2e6;
-      border-radius: 8px;
-      padding: 12px;
-      background: #fff;
-    }
-    table.table tbody tr td {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 0;
-      border: none;
-    }
-    table.table tbody tr td::before {
-      content: attr(data-label);
-      font-weight: 600;
-      color: #495057;
-    }
-    .checkout-section {
-      text-align: center;
-    }
-    .checkout-btn,
-    .checkout-section .btn {
-      width: 100%;
-      margin-bottom: 10px;
-    }
-  }
-}
+  /* giữ style cũ của bạn (hoặc dán nguyên từ bản trước) */
+  .loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.35);display:none;justify-content:center;align-items:center;z-index:9999}
+  .spinner{width:52px;height:52px;border:6px solid #f3f3f3;border-top:6px solid #007bff;border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .price-blink{transition:background .2s}
+  .price-blink.active{background:#ffe484;border-radius:4px}
 </style>
 
 <script>
-// Định dạng giá VNĐ
+// Format VNĐ
 function formatVietnameseCurrency(number) {
   return new Intl.NumberFormat('vi-VN').format(number) + 'đ';
 }
 function formatAllPrices() {
   document.querySelectorAll('.js-money').forEach(function (el) {
     let number = Number(el.textContent.replace(/[^0-9]/g, ''));
-    if (!isNaN(number) && number > 0) {
-      el.textContent = formatVietnameseCurrency(number);
-    }
+    if (!isNaN(number)) el.textContent = formatVietnameseCurrency(number);
   });
 }
+function blinkPrice(el) { el.classList.add('active'); setTimeout(()=>el.classList.remove('active'), 400); }
 
-// Hiệu ứng nhấp nháy giá khi thay đổi
-function blinkPrice(el) {
-  el.classList.add('active');
-  setTimeout(()=>el.classList.remove('active'), 400);
-}
-
-// AJAX cập nhật cart
 function updateCartUI(data) {
-  // Update số lượng và subtotal
   for (const item of data.items) {
     let row = document.querySelector('tr[data-item-id="' + item.id + '"]');
     if (row) {
@@ -238,34 +151,38 @@ function updateCartUI(data) {
       row.setAttribute('data-unit-price', item.price);
     }
   }
-  // Tổng tiền
   const total = document.getElementById('cart-total');
-  total.textContent = data.total_price;
-  blinkPrice(total);
+  total.textContent = data.subtotal; blinkPrice(total);
+
+  const final = document.getElementById('cart-final');
+  final.textContent = data.final_total; blinkPrice(final);
+
+  const discountNode = document.getElementById('discount-amount');
+  if (data.coupon_code) {
+    if (discountNode) {
+      discountNode.textContent = data.discount_amount;
+    } else {
+      window.location.reload();
+    }
+  }
   formatAllPrices();
 }
 
-function showLoading() { document.getElementById('loading-overlay').style.display = 'flex'; }
-function hideLoading() { document.getElementById('loading-overlay').style.display = 'none'; }
+function showLoading(){ document.getElementById('loading-overlay').style.display='flex'; }
+function hideLoading(){ document.getElementById('loading-overlay').style.display='none'; }
 
-// AJAX cho tăng/giảm/xóa
 function sendAjaxRequest(url, itemId, action) {
   showLoading();
   fetch(url, {
     method: 'POST',
-    headers: {
-      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-    },
+    headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
   })
-  .then(response => response.json())
+  .then(res => res.json())
   .then(data => {
     if (data.success) {
       if (action === 'remove') {
         const row = document.querySelector('tr[data-item-id="' + itemId + '"]');
-        if (row) {
-          row.style.transition = "opacity 0.5s"; row.style.opacity = "0";
-          setTimeout(()=>row.remove(), 450);
-        }
+        if (row) { row.style.transition='opacity .5s'; row.style.opacity='0'; setTimeout(()=>row.remove(), 450); }
         if (data.items.length === 0) window.location.reload();
       } else {
         updateCartUI(data);
@@ -274,28 +191,15 @@ function sendAjaxRequest(url, itemId, action) {
       alert(data.message || 'Chúng tôi đã hết hàng');
     }
   })
-  .catch(error => { alert('Có lỗi khi kết nối máy chủ!'); })
-  .finally(() => { hideLoading(); });
+  .catch(() => alert('Có lỗi khi kết nối máy chủ!'))
+  .finally(hideLoading);
 }
 
 document.addEventListener("DOMContentLoaded", function () {
   formatAllPrices();
-  document.querySelectorAll('.increase-btn').forEach(function(btn) {
-    btn.onclick = function() {
-      sendAjaxRequest(btn.dataset.url, btn.dataset.itemId, 'increase');
-    };
-  });
-  document.querySelectorAll('.decrease-btn').forEach(function(btn) {
-    btn.onclick = function() {
-      sendAjaxRequest(btn.dataset.url, btn.dataset.itemId, 'decrease');
-    };
-  });
-  document.querySelectorAll('.remove-btn').forEach(function(btn) {
-    btn.onclick = function() {
-      if (confirm('Bạn chắc chắn muốn bỏ sản phẩm này?'))
-        sendAjaxRequest(btn.dataset.url, btn.dataset.itemId, 'remove');
-    };
-  });
+  document.querySelectorAll('.increase-btn').forEach(btn => btn.onclick = () => sendAjaxRequest(btn.dataset.url, btn.dataset.itemId, 'increase'));
+  document.querySelectorAll('.decrease-btn').forEach(btn => btn.onclick = () => sendAjaxRequest(btn.dataset.url, btn.dataset.itemId, 'decrease'));
+  document.querySelectorAll('.remove-btn').forEach(btn => btn.onclick = () => { if (confirm('Bạn chắc chắn muốn bỏ sản phẩm này?')) sendAjaxRequest(btn.dataset.url, btn.dataset.itemId, 'remove'); });
 });
 </script>
 {% endblock %}
