@@ -1,19 +1,20 @@
 from django.contrib import messages
-from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
+from django.contrib.auth.forms import AuthenticationForm
+from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.db.models import Q, F
 from django.http import JsonResponse, HttpResponseBadRequest
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.core.mail import send_mail
-from django.contrib.auth.forms import AuthenticationForm
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-import qrcode, io, base64
+from django.views.decorators.http import require_POST
 
 from django import forms
+import qrcode, io, base64
 
 from .forms import SignupForm, CommentForm, CheckoutForm, FeedbackForm, CouponApplyForm
 from .models import (
@@ -21,14 +22,21 @@ from .models import (
     Order, OrderItem, Feedback, CommentReaction, ProductColor, CarouselImage, Coupon
 )
 
-# ----------------- Helpers (pricing) -----------------
+# ================= Helpers (pricing) =================
 
 def pricing_with_session(request, include_items=False):
-    """Tính giá giỏ hàng + áp dụng coupon (đọc từ session)."""
+    """
+    Tính giá giỏ hàng + áp dụng coupon (đọc từ session).
+    ĐÃ HỖ TRỢ FLASH SALE: dùng discounted_price() của Variant nếu có.
+    """
     cart_qs = CartItem.objects.filter(user=request.user)
     items, subtotal = [], 0
     for it in cart_qs:
-        price = int(it.variant.price if it.variant else it.product.display_price())
+        # FLASH SALE: dùng giá đã giảm nếu variant; nếu không, dùng display_price() của Product (đã tính giảm ở models)
+        if it.variant:
+            price = int(it.variant.discounted_price())
+        else:
+            price = int(it.product.display_price())
         sub = price * it.quantity
         subtotal += sub
         if include_items:
@@ -56,70 +64,50 @@ def pricing_with_session(request, include_items=False):
         'final_total': final_total,
     }
 
-# ------------------ AJAX CART ---------------------
-
-@csrf_exempt
-@login_required
-def increase_quantity(request, item_id):
-    try:
-        item = CartItem.objects.get(id=item_id, user=request.user)
-        max_stock = item.variant.stock if item.variant else item.product.stock
-        if item.quantity < max_stock:
-            item.quantity += 1
-            item.save()
-            status = True
-        else:
-            status = False
-    except CartItem.DoesNotExist:
-        status = False
-    return JsonResponse(cart_data_response(request, status=status))
-
-@csrf_exempt
-@login_required
-def decrease_quantity(request, item_id):
-    try:
-        item = CartItem.objects.get(id=item_id, user=request.user)
-        if item.quantity > 1:
-            item.quantity -= 1
-            item.save()
-            status = True
-        else:
-            status = False
-    except CartItem.DoesNotExist:
-        status = False
-    return JsonResponse(cart_data_response(request, status=status))
-
-@csrf_exempt
-@login_required
-def remove_from_cart(request, item_id):
-    try:
-        item = CartItem.objects.get(id=item_id, user=request.user)
-        item.delete()
-        status = True
-    except CartItem.DoesNotExist:
-        status = False
-    return JsonResponse(cart_data_response(request, status=status))
-
 def cart_data_response(request, status=True):
     data = pricing_with_session(request, include_items=True)
     data.update({'success': status})
     data['coupon_code'] = data['coupon'].code if data['coupon'] else None
     return data
 
-# ----------------- CÁC VIEW CHÍNH ---------------------------
-
 def chunk_products(lst, size):
     for i in range(0, len(lst), size):
         yield lst[i:i + size]
+
+# =================== Trang chính =====================
 
 def home(request):
     featured_products = Product.objects.filter(is_featured=True)
     product_groups = list(chunk_products(featured_products, 3))
     carousel_images = CarouselImage.objects.filter(is_active=True)
+
+    # Lấy danh sách Flash Sale đang active
+    qs = Product.objects.filter(is_flash_sale=True, flash_percent__gt=0)
+    flash_products = [p for p in qs if p.flash_active()]
+
     return render(request, 'shop/home.html', {
         'product_groups': product_groups,
         'carousel_images': carousel_images,
+        'flash_products': flash_products,   # <-- thêm dòng này
     })
+    # Nhóm featured thành từng hàng 3 sản phẩm (giữ nguyên logic của bạn)
+    featured_products = Product.objects.filter(is_featured=True)
+    product_groups = list(chunk_products(featured_products, 3))
+
+    # Carousel
+    carousel_images = CarouselImage.objects.filter(is_active=True)
+
+    # FLASH SALE: lấy sản phẩm đang active để hiển thị ở Home (nếu bạn muốn hiển thị)
+    flash_products_qs = Product.objects.filter(is_flash_sale=True)
+    flash_products = [p for p in flash_products_qs if p.flash_active()]
+
+    return render(request, 'shop/home.html', {
+        'product_groups': product_groups,
+        'carousel_images': carousel_images,
+        'flash_products': flash_products,   # thêm vào template để bạn render badge/giá giảm
+    })
+
+# =================== Auth ============================
 
 def signup_view(request):
     if request.method == 'POST':
@@ -166,6 +154,58 @@ Trân trọng,
     else:
         form = AuthenticationForm()
     return render(request, 'shop/login.html', {'form': form})
+
+@require_POST
+def logout_view(request):
+    logout(request)
+    messages.success(request, "👋 Bạn đã đăng xuất.")
+    return redirect('home')
+
+# =================== Cart (AJAX) =====================
+
+@csrf_exempt
+@login_required
+def increase_quantity(request, item_id):
+    try:
+        item = CartItem.objects.get(id=item_id, user=request.user)
+        max_stock = item.variant.stock if item.variant else item.product.stock
+        if item.quantity < max_stock:
+            item.quantity += 1
+            item.save()
+            status = True
+        else:
+            status = False
+    except CartItem.DoesNotExist:
+        status = False
+    return JsonResponse(cart_data_response(request, status=status))
+
+@csrf_exempt
+@login_required
+def decrease_quantity(request, item_id):
+    try:
+        item = CartItem.objects.get(id=item_id, user=request.user)
+        if item.quantity > 1:
+            item.quantity -= 1
+            item.save()
+            status = True
+        else:
+            status = False
+    except CartItem.DoesNotExist:
+        status = False
+    return JsonResponse(cart_data_response(request, status=status))
+
+@csrf_exempt
+@login_required
+def remove_from_cart(request, item_id):
+    try:
+        item = CartItem.objects.get(id=item_id, user=request.user)
+        item.delete()
+        status = True
+    except CartItem.DoesNotExist:
+        status = False
+    return JsonResponse(cart_data_response(request, status=status))
+
+# =================== Product & Comment ================
 
 @login_required
 def add_to_cart(request, pk):
@@ -238,13 +278,57 @@ def product_detail(request, pk):
         'colors': colors,
     })
 
+@require_POST
+@login_required
+def react_to_comment(request, comment_id, reaction_type):
+    if reaction_type not in ['like', 'dislike']:
+        return HttpResponseBadRequest("Phản ứng không hợp lệ.")
+
+    comment = get_object_or_404(Comment, id=comment_id)
+
+    reaction, created = CommentReaction.objects.get_or_create(
+        user=request.user,
+        comment=comment,
+        defaults={'reaction': reaction_type}
+    )
+
+    if created:
+        if reaction_type == 'like':
+            Comment.objects.filter(pk=comment.pk).update(likes=F('likes') + 1)
+        else:
+            Comment.objects.filter(pk=comment.pk).update(dislikes=F('dislikes') + 1)
+
+    elif reaction.reaction != reaction_type:
+        # đổi trạng thái: like -> dislike hoặc ngược lại
+        if reaction.reaction == 'like':
+            Comment.objects.filter(pk=comment.pk).update(
+                likes=F('likes') - 1,
+                dislikes=F('dislikes') + 1
+            )
+        else:
+            Comment.objects.filter(pk=comment.pk).update(
+                likes=F('likes') + 1,
+                dislikes=F('dislikes') - 1
+            )
+        reaction.reaction = reaction_type
+        reaction.save()
+
+    updated_comment = Comment.objects.get(pk=comment.pk)
+    return render(request, 'shop/partials/comment_card.html', {'c': updated_comment})
+
+# =================== Cart/Checkout/QR =================
+
 @login_required
 def cart_view(request):
     pricing = pricing_with_session(request, include_items=True)
     cart_items = CartItem.objects.filter(user=request.user)
     items_vm = []
     for it in cart_items:
-        price = it.variant.price if it.variant else it.product.display_price()
+        # FLASH SALE: hiển thị giá đã giảm nếu có
+        if it.variant:
+            price = it.variant.discounted_price()
+        else:
+            price = it.product.display_price()
         items_vm.append({'item': it, 'price': price, 'subtotal': price * it.quantity})
 
     return render(request, 'shop/cart.html', {
@@ -336,11 +420,19 @@ def qr_payment(request):
 
     items = []
     for item in cart_qs:
-        price = item.variant.price if item.variant else item.product.display_price()
+        # FLASH SALE: thông tin giá/subtotal dùng giá đã giảm nếu có
+        if item.variant:
+            price = item.variant.discounted_price()
+            variant_name = getattr(item.variant, 'storage', '')
+            color_name = item.variant.color.name if getattr(item.variant, 'color', None) else ''
+        else:
+            price = item.product.display_price()
+            variant_name, color_name = '', ''
+
         items.append({
             'product': item.product.name,
-            'variant': getattr(item.variant, 'storage', ''),
-            'color': item.variant.color.name if getattr(item.variant, 'color', None) else '',
+            'variant': variant_name,
+            'color': color_name,
             'quantity': item.quantity,
             'subtotal': price * item.quantity,
         })
@@ -425,6 +517,8 @@ Các sản phẩm đã mua:
     message += "\nĐơn hàng của bạn sẽ sớm được xác nhận và giao hàng.\nTrân trọng!"
     send_mail(subject, message, None, [email])
 
+# =================== Coupon ==========================
+
 @require_POST
 def apply_coupon(request):
     form = CouponApplyForm(request.POST)
@@ -449,59 +543,14 @@ def clear_coupon(request):
     messages.info(request, "Đã hủy mã giảm giá.")
     return redirect('cart')
 
-@require_POST
-def logout_view(request):
-    logout(request)
-    messages.success(request, "👋 Bạn đã đăng xuất.")
-    return redirect('home')
+# =================== Order history ===================
 
 @login_required
 def order_history(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'shop/order_history.html', {'orders': orders})
 
-@require_POST
-@login_required
-def react_to_comment(request, comment_id, reaction_type):
-    if reaction_type not in ['like', 'dislike']:
-        return HttpResponseBadRequest("Phản ứng không hợp lệ.")
-
-    comment = get_object_or_404(Comment, id=comment_id)
-
-    reaction, created = CommentReaction.objects.get_or_create(
-        user=request.user,
-        comment=comment,
-        defaults={'reaction': reaction_type}
-    )
-
-    if created:
-        if reaction_type == 'like':
-            Comment.objects.filter(pk=comment.pk).update(likes=F('likes') + 1)
-        else:
-            Comment.objects.filter(pk=comment.pk).update(dislikes=F('dislikes') + 1)
-
-    elif reaction.reaction != reaction_type:
-        # đổi trạng thái: like -> dislike hoặc ngược lại
-        if reaction.reaction == 'like':
-            Comment.objects.filter(pk=comment.pk).update(
-                likes=F('likes') - 1,
-                dislikes=F('dislikes') + 1
-            )
-        else:
-            Comment.objects.filter(pk=comment.pk).update(
-                likes=F('likes') + 1,
-                dislikes=F('dislikes') - 1
-            )
-        reaction.reaction = reaction_type
-        reaction.save()
-
-    updated_comment = Comment.objects.get(pk=comment.pk)
-    return render(request, 'shop/partials/comment_card.html', {'c': updated_comment})
-
-
-from django.core.paginator import Paginator
-from django.shortcuts import render
-from .models import Product
+# =================== Category pages ==================
 
 def product_by_category(request, category, template):
     product_list = Product.objects.filter(category=category)
@@ -528,11 +577,7 @@ def audio_products(request):
 def accessory_products(request):
     return product_by_category(request, 'accessory', 'shop/accessory.html')
 
-
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .forms import FeedbackForm
+# =================== Feedback ========================
 
 @login_required
 def feedback_view(request):
@@ -548,13 +593,8 @@ def feedback_view(request):
         form = FeedbackForm()
     return render(request, 'shop/feedback.html', {'form': form})
 
+# =================== Inventory (staff) ===============
 
-from django.contrib.admin.views.decorators import staff_member_required
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import ProductVariant
-from django import forms
-
-# Form cập nhật tồn kho
 class VariantStockUpdateForm(forms.ModelForm):
     class Meta:
         model = ProductVariant
@@ -562,12 +602,12 @@ class VariantStockUpdateForm(forms.ModelForm):
 
 @staff_member_required
 def inventory_management(request):
-    # để auto-scroll khi search
     q = request.GET.get('q', '').strip()
-
-    variants = (ProductVariant.objects
-                .select_related('product', 'color')
-                .order_by('product__category', 'product__name', 'storage', 'color__name'))
+    variants = (
+        ProductVariant.objects
+        .select_related('product', 'color')
+        .order_by('product__category', 'product__name', 'storage', 'color__name')
+    )
 
     if request.method == 'POST':
         variant_id = request.POST.get('variant_id')
@@ -585,10 +625,7 @@ def inventory_management(request):
         {'variants': variants, 'form': form, 'q': q}
     )
 
-
-from django.db.models import Q
-from django.shortcuts import render
-from .models import Product
+# =================== Search ==========================
 
 def search_products(request):
     query = request.GET.get('q', '')
@@ -598,5 +635,28 @@ def search_products(request):
         'results': results
     })
 
+# =================== Flash Sales page =================
+# Trang này cho phép xem danh sách sản phẩm đang Flash và (tùy chọn) nhập % để xem thử mà không ghi DB.
 
+class FlashFilterForm(forms.Form):
+    percent = forms.IntegerField(
+        min_value=0, max_value=90, required=False,
+        label="Giảm bao nhiêu % (xem thử)"
+    )
 
+def flash_sales(request):
+    form = FlashFilterForm(request.GET or None)
+    custom_percent = None
+    if form.is_valid():
+        custom_percent = form.cleaned_data.get("percent")
+
+    products_qs = Product.objects.filter(is_flash_sale=True)
+    products = [p for p in products_qs if p.flash_active()]
+
+    for p in products:
+        p._custom_percent = custom_percent  # gắn tạm cho template
+
+    return render(request, "shop/flash_sales.html", {
+        "products": products,
+        "form": form,
+    })

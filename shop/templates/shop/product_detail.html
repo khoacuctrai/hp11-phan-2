@@ -104,12 +104,8 @@
     font-weight: 600;
     border: none;
     box-shadow: 0 2px 8px 0 rgba(255,102,178,0.09);
-    transition: background .23s;
   }
-  .btn-pink:hover {
-    background: linear-gradient(90deg, #ff66b2, #fc87c7);
-    color: #fff;
-  }
+  .btn-pink:hover { background: linear-gradient(90deg, #ff66b2, #fc87c7); color: #fff; }
 
   /* Related Products (Gợi ý sản phẩm) */
   .related-card {
@@ -129,47 +125,12 @@
     border-color: #ffe066;
     transform: translateY(-3px) scale(1.03);
   }
-  .related-card img {
-    height: 148px;
-    object-fit: contain;
-    background: #fffde7;
-    border-bottom: 1px solid #f7ecd3;
-    padding: 12px 0;
-  }
-  .related-title {
-    color: #2e3c44;
-    font-weight: 700;
-    font-size: 1.1rem;
-    min-height: 2.3em;
-    margin-bottom: 8px;
-  }
-  .related-price {
-    font-size: 1.26rem;
-    color: #e1602b;
-    font-weight: bold;
-    letter-spacing: .01em;
-    margin-bottom: 5px;
-  }
-  .btn-related {
-    background: #ffe066;
-    color: #2c2738;
-    font-weight: 700;
-    font-size: 1rem;
-    border-radius: 7px;
-    padding: 7px 23px;
-    margin-top: 5px;
-    border: none;
-    transition: background .14s, color .13s, transform .14s;
-    box-shadow: 0 2px 8px #ffe06621;
-    display: inline-block;
-  }
-  .btn-related:hover, .btn-related:focus {
-    background: #ffd25c;
-    color: #191a22;
-    transform: scale(1.06);
-    box-shadow: 0 6px 15px #ffe06631;
-    text-decoration: none;
-  }
+  .related-card img { height: 148px; object-fit: contain; background: #fffde7; border-bottom: 1px solid #f7ecd3; padding: 12px 0; }
+  .related-title { color: #2e3c44; font-weight: 700; font-size: 1.1rem; min-height: 2.3em; margin-bottom: 8px; }
+  .related-price { font-size: 1.26rem; color: #e1602b; font-weight: bold; letter-spacing: .01em; margin-bottom: 5px; }
+  .btn-related { background: #ffe066; color: #2c2738; font-weight: 700; font-size: 1rem; border-radius: 7px; padding: 7px 23px; margin-top: 5px; border: none; transition: background .14s, color .13s, transform .14s; box-shadow: 0 2px 8px #ffe06621; display: inline-block; }
+  .btn-related:hover, .btn-related:focus { background: #ffd25c; color: #191a22; transform: scale(1.06); text-decoration: none; }
+
   @media (max-width: 900px) {
     .product-main-card { padding: 20px 8px 18px 8px; }
     .product-img-box img { max-height: 270px;}
@@ -182,6 +143,10 @@
     .product-detail-container { padding-bottom: 30px;}
     .product-main-card {padding: 12px 1vw;}
   }
+
+  /* Bổ sung nhỏ cho Flash Sale */
+  .badge-flash{background:#ff6b6b;color:#fff;font-weight:800;border-radius:10px;padding:.25rem .6rem;margin-left:.5rem}
+  .price-old{color:#cbd3da;text-decoration:line-through;margin-right:.5rem}
 </style>
 
 
@@ -213,145 +178,25 @@
     width: 100%;
     transition: box-shadow .23s;
   }
-  .product-img-box img:hover {
-    box-shadow: 0 8px 36px 0 rgba(81,214,255,0.12);
-  }
-  .product-title {
-    color: #ffd85d;
-    font-weight: 700;
-    font-size: 2rem;
-    margin-bottom: 16px;
-    letter-spacing: 0.03em;
-    text-shadow: 0 1px 6px #1115;
-  }
-  .form-label, label, select, input, .form-select, .form-control {
-    font-size: 1.07rem;
-  }
-  .form-select, .form-control {
-    border-radius: 9px !important;
-    background: #222d36;
-    color: #ffefae;
-    border: 1.5px solid #2b3d4d;
-    margin-bottom: 6px;
-  }
-  .form-select:focus, .form-control:focus {
-    border-color: #38ccfd;
-    background: #233144;
-    color: #fff;
-    outline: none;
-  }
-  .btn-main {
-    background: linear-gradient(95deg, #facc15 0%, #ffc947 100%);
-    color: #2c2534;
-    border-radius: 10px;
-    padding: 11px 36px;
-    font-weight: 700;
-    font-size: 1.13rem;
-    box-shadow: 0 3px 14px 0 rgba(255,214,90,0.18);
-    transition: all 0.18s;
-    border: none;
-  }
-  .btn-main:hover {
-    background: linear-gradient(95deg, #ffe187 0%, #facc15 100%);
-    color: #24262f;
-    transform: translateY(-2px) scale(1.04);
-    box-shadow: 0 6px 25px 0 rgba(255,214,90,0.23);
-  }
-  .product-price, .text-price {
-    font-size: 1.7rem;
-    font-weight: bold;
-    color: #ffe066;
-    text-shadow: 0 1px 8px #18150023;
-    letter-spacing: 0.04em;
-    margin-bottom: 5px;
-  }
-  .product-section-label {
-    color: #56d1fd;
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin-bottom: 14px;
-    letter-spacing: 0.02em;
-  }
-  .bg-comment {
-    background: linear-gradient(100deg, #23282d 80%, #2a3746 100%);
-    border-radius: 16px;
-    box-shadow: 0 2px 13px 0 rgba(0,0,0,0.09);
-    padding: 22px 20px 18px 20px;
-  }
-  .btn-pink {
-    background: linear-gradient(92deg, #fc87c7, #ff66b2);
-    color: white;
-    border-radius: 9px;
-    padding: 8px 26px;
-    font-weight: 600;
-    border: none;
-    box-shadow: 0 2px 8px 0 rgba(255,102,178,0.09);
-    transition: background .23s;
-  }
-  .btn-pink:hover {
-    background: linear-gradient(90deg, #ff66b2, #fc87c7);
-    color: #fff;
-  }
-
-  /* Related Products (Gợi ý sản phẩm) */
-  .related-card {
-    background: #fdfcee;
-    border-radius: 18px;
-    box-shadow: 0 1px 9px 0 #ffe06620;
-    overflow: hidden;
-    transition: box-shadow .21s, transform .18s;
-    border: 1.6px solid #f5e6a2;
-    min-height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: stretch;
-  }
-  .related-card:hover {
-    box-shadow: 0 8px 28px 0 #ffe06634, 0 3px 16px 0 #ffea9165;
-    border-color: #ffe066;
-    transform: translateY(-3px) scale(1.03);
-  }
-  .related-card img {
-    height: 148px;
-    object-fit: contain;
-    background: #fffde7;
-    border-bottom: 1px solid #f7ecd3;
-    padding: 12px 0;
-  }
-  .related-title {
-    color: #2e3c44;
-    font-weight: 700;
-    font-size: 1.1rem;
-    min-height: 2.3em;
-    margin-bottom: 8px;
-  }
-  .related-price {
-    font-size: 1.26rem;
-    color: #e1602b;
-    font-weight: bold;
-    letter-spacing: .01em;
-    margin-bottom: 5px;
-  }
-  .btn-related {
-    background: #ffe066;
-    color: #2c2738;
-    font-weight: 700;
-    font-size: 1rem;
-    border-radius: 7px;
-    padding: 7px 23px;
-    margin-top: 5px;
-    border: none;
-    transition: background .14s, color .13s, transform .14s;
-    box-shadow: 0 2px 8px #ffe06621;
-    display: inline-block;
-  }
-  .btn-related:hover, .btn-related:focus {
-    background: #ffd25c;
-    color: #191a22;
-    transform: scale(1.06);
-    box-shadow: 0 6px 15px #ffe06631;
-    text-decoration: none;
-  }
+  .product-img-box img:hover { box-shadow: 0 8px 36px 0 rgba(81,214,255,0.12); }
+  .product-title { color: #ffd85d; font-weight: 700; font-size: 2rem; margin-bottom: 16px; letter-spacing: 0.03em; text-shadow: 0 1px 6px #1115; }
+  .form-label, label, select, input, .form-select, .form-control { font-size: 1.07rem; }
+  .form-select, .form-control { border-radius: 9px !important; background: #222d36; color: #ffefae; border: 1.5px solid #2b3d4d; margin-bottom: 6px; }
+  .form-select:focus, .form-control:focus { border-color: #38ccfd; background: #233144; color: #fff; outline: none; }
+  .btn-main { background: linear-gradient(95deg, #facc15 0%, #ffc947 100%); color: #2c2534; border-radius: 10px; padding: 11px 36px; font-weight: 700; font-size: 1.13rem; box-shadow: 0 3px 14px 0 rgba(255,214,90,0.18); transition: all 0.18s; border: none; }
+  .btn-main:hover { background: linear-gradient(95deg, #ffe187 0%, #facc15 100%); color: #24262f; transform: translateY(-2px) scale(1.04); box-shadow: 0 6px 25px 0 rgba(255,214,90,0.23); }
+  .product-price, .text-price { font-size: 1.7rem; font-weight: bold; color: #ffe066; text-shadow: 0 1px 8px #18150023; letter-spacing: 0.04em; margin-bottom: 5px; }
+  .product-section-label { color: #56d1fd; font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; letter-spacing: 0.02em; }
+  .bg-comment { background: linear-gradient(100deg, #23282d 80%, #2a3746 100%); border-radius: 16px; box-shadow: 0 2px 13px 0 rgba(0,0,0,0.09); padding: 22px 20px 18px 20px; }
+  .btn-pink { background: linear-gradient(92deg, #fc87c7, #ff66b2); color: white; border-radius: 9px; padding: 8px 26px; font-weight: 600; border: none; box-shadow: 0 2px 8px 0 rgba(255,102,178,0.09); transition: background .23s; }
+  .btn-pink:hover { background: linear-gradient(90deg, #ff66b2, #fc87c7); color: #fff; }
+  .related-card { background: #fdfcee; border-radius: 18px; box-shadow: 0 1px 9px 0 #ffe06620; overflow: hidden; transition: box-shadow .21s, transform .18s; border: 1.6px solid #f5e6a2; min-height: 100%; display: flex; flex-direction: column; justify-content: stretch; }
+  .related-card:hover { box-shadow: 0 8px 28px 0 #ffe06634, 0 3px 16px 0 #ffea9165; border-color: #ffe066; transform: translateY(-3px) scale(1.03); }
+  .related-card img { height: 148px; object-fit: contain; background: #fffde7; border-bottom: 1px solid #f7ecd3; padding: 12px 0; }
+  .related-title { color: #2e3c44; font-weight: 700; font-size: 1.1rem; min-height: 2.3em; margin-bottom: 8px; }
+  .related-price { font-size: 1.26rem; color: #e1602b; font-weight: bold; letter-spacing: .01em; margin-bottom: 5px; }
+  .btn-related { background: #ffe066; color: #2c2738; font-weight: 700; font-size: 1rem; border-radius: 7px; padding: 7px 23px; margin-top: 5px; border: none; transition: background .14s, color .13s, transform .14s; box-shadow: 0 2px 8px #ffe06621; display: inline-block; }
+  .btn-related:hover, .btn-related:focus { background: #ffd25c; color: #191a22; transform: scale(1.06); box-shadow: 0 6px 15px #ffe06631; text-decoration: none; }
   @media (max-width: 900px) {
     .product-main-card { padding: 20px 8px 18px 8px; }
     .product-img-box img { max-height: 270px;}
@@ -368,7 +213,7 @@
 
 <div class="product-detail-container">
   <!-- Thông báo -->
-  {  {% if messages %}
+  {% if messages %}
     {% for message in messages %}
       <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
         {{ message }}
@@ -382,7 +227,13 @@
       <img id="product-image" src="{{ product.image.url }}" alt="{{ product.name }}">
     </div>
     <div class="col-md-6">
-      <h2 class="product-title">{{ product.name }}</h2>
+      <h2 class="product-title">
+        {{ product.name }}
+        {% if product.flash_active %}
+          <span class="badge-flash">-{{ product.flash_percent }}%</span>
+        {% endif %}
+      </h2>
+
       <!-- Màu sắc -->
       {% if colors %}
         <div class="mb-3">
@@ -404,15 +255,24 @@
               <label for="variant_id" class="form-label product-section-label">Chọn cấu hình:</label>
               <select name="variant_id" id="variant_id" class="form-select" onchange="updatePrice()">
                 {% for v in variants %}
-                  <option value="{{ v.id }}" data-price="{{ v.price }}"
-                          data-stock="{{ v.stock }}" {% if v.stock == 0 %}disabled{% endif %}>
+                  <option
+                    value="{{ v.id }}"
+                    data-price="{{ v.price }}"
+                    data-discounted="{{ v.discounted_price }}"
+                    data-sale="{% if v.is_flash_sale and v.flash_percent > 0 %}1{% else %}0{% endif %}"
+                    data-percent="{{ v.flash_percent }}"
+                    data-stock="{{ v.stock }}"
+                    {% if v.stock == 0 %}disabled{% endif %}
+                  >
                     {{ v.storage }}{% if v.stock == 0 %} - Hết hàng{% endif %}
                   </option>
                 {% endfor %}
               </select>
             </div>
             <div class="product-price mb-2">
-              <span id="variant-price">{{ variants.0.price|floatformat:0|intcomma }}</span> VNĐ
+              <span id="price-old" class="price-old" style="display:none;"></span>
+              <span id="price-new"></span> VNĐ
+              <small id="sale-badge-inline" class="badge-flash" style="display:none; margin-left:8px;"></small>
             </div>
             <div class="mb-3">
               <label for="quantity" class="form-label">Số lượng:</label>
@@ -495,14 +355,34 @@
 </div>
 
 <script>
+function formatVND(n){ return Number(n).toLocaleString("vi-VN"); }
+
 function updatePrice() {
   const select = document.getElementById("variant_id");
   if (!select) return;
 
   const selectedOption = select.options[select.selectedIndex];
-  const price = selectedOption.getAttribute("data-price");
-  const stock = parseInt(selectedOption.getAttribute("data-stock"));
-  document.getElementById("variant-price").textContent = parseFloat(price).toLocaleString("vi-VN");
+  const price = parseInt(selectedOption.getAttribute("data-price")) || 0;
+  const discounted = parseInt(selectedOption.getAttribute("data-discounted")) || price;
+  const onSale = selectedOption.getAttribute("data-sale") === "1";
+  const percent = parseInt(selectedOption.getAttribute("data-percent")) || 0;
+  const stock = parseInt(selectedOption.getAttribute("data-stock")) || 0;
+
+  const elOld = document.getElementById("price-old");
+  const elNew = document.getElementById("price-new");
+  const badge = document.getElementById("sale-badge-inline");
+
+  if (onSale && discounted < price) {
+    elOld.style.display = "";
+    elOld.textContent = formatVND(price);
+    elNew.textContent = formatVND(discounted);
+    badge.style.display = "";
+    badge.textContent = `-${percent}%`;
+  } else {
+    elOld.style.display = "none";
+    elNew.textContent = formatVND(price);
+    badge.style.display = "none";
+  }
 
   // Kiểm tra tồn kho
   const addBtn = document.getElementById("add-to-cart-btn");
@@ -511,14 +391,14 @@ function updatePrice() {
 
   if (stock === 0) {
     if(addBtn) addBtn.disabled = true;
-    if(qtyInput) qtyInput.disabled = true;
+    if(qtyInput) { qtyInput.disabled = true; qtyInput.value = 0; }
     if(outMsg) outMsg.style.display = 'block';
   } else {
     if(addBtn) addBtn.disabled = false;
     if(qtyInput) {
       qtyInput.disabled = false;
       qtyInput.max = stock;
-      if (parseInt(qtyInput.value) > stock) qtyInput.value = stock;
+      if (parseInt(qtyInput.value || 1) > stock) qtyInput.value = stock;
     }
     if(outMsg) outMsg.style.display = 'none';
   }
@@ -544,7 +424,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll(".related-price").forEach(function (el) {
     const raw = parseFloat(el.dataset.price);
     el.textContent = isNaN(raw) ? "Liên hệ" : raw.toLocaleString("vi-VN") + "₫";
-  }); 
+  });
 
   // Giá cho sản phẩm không biến thể
   var basePrice = document.getElementById("base-price");
@@ -552,4 +432,3 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endblock %}
-

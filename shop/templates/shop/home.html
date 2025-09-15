@@ -1,121 +1,65 @@
 {% extends 'shop/base.html' %}
+{% load tz %}
 
 {% block content %}
-<!-- AOS CSS -->
 <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
 
 <style>
-  body {
-    background: #17191d;
-  }
+  body { background:#17191d; }
+
+  /* Featured */
   .featured-title {
-    font-size: 2.1rem;
-    font-weight: 900;
-    color: #ffe066;
-    letter-spacing: 0.05em;
-    margin-bottom: 38px;
-    text-shadow: 0 2px 14px #ffe06613, 0 2px 6px #17191d55;
+    font-size:2.1rem;font-weight:900;color:#ffe066;
+    letter-spacing:0.05em;margin-bottom:38px;
+    text-shadow:0 2px 14px #ffe06613,0 2px 6px #17191d55;
   }
-  .carousel-inner {
-    border-radius: 28px;
-    overflow: hidden;
-    box-shadow: 0 10px 36px rgba(255,225,102,0.09), 0 2px 8px rgba(0,0,0,0.15);
-    background: linear-gradient(120deg, #1c1c1c 75%, #191a1c 100%);
+  .carousel-inner{border-radius:28px;overflow:hidden;
+    box-shadow:0 10px 36px rgba(255,225,102,0.09),0 2px 8px rgba(0,0,0,0.15);
+    background:linear-gradient(120deg,#1c1c1c 75%, #191a1c 100%);
   }
-  .carousel-item .card {
-    background: linear-gradient(120deg, #1e1e22 92%, #23242c 100%);
-    color: #ffe;
-    border: none;
-    border-radius: 22px;
-    box-shadow: 0 4px 22px #ffe0660a;
-    padding-bottom: 10px;
-    min-height: 425px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    transition: transform .22s, box-shadow .2s;
+  .carousel-item .card{
+    background:linear-gradient(120deg,#1e1e22 92%, #23242c 100%);
+    color:#ffe;border:none;border-radius:22px;min-height:425px;
+    box-shadow:0 4px 22px #ffe0660a;padding-bottom:10px;
+    transition:transform .22s, box-shadow .2s;
   }
-  .carousel-item .card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 9px 28px #ffe06633, 0 5px 16px #fff2;
+  .carousel-item .card:hover{
+    transform:translateY(-8px) scale(1.02);
+    box-shadow:0 9px 28px #ffe06633, 0 5px 16px #fff2;
   }
-  .card-img-top {
-    max-height: 200px;
-    object-fit: contain;
-    background: #202124;
-    border-radius: 16px;
-    padding: 14px 8px 8px 8px;
-    margin-bottom: 9px;
-    box-shadow: 0 2px 12px #ffe06628;
-    transition: box-shadow .18s;
+  .card-img-top{
+    max-height:200px;object-fit:contain;background:#202124;
+    border-radius:16px;padding:14px 8px;margin-bottom:9px;
+    box-shadow:0 2px 12px #ffe06628;
   }
-  .card-title {
-    font-size: 1.25rem;
-    font-weight: 900;
-    color: #ffe15d;
-    margin-bottom: 7px;
-    letter-spacing: .01em;
-    text-shadow: 0 1px 7px #ffe06630;
+  .card-title{font-size:1.25rem;font-weight:900;color:#ffe15d;margin-bottom:7px;}
+  .card .price{font-size:1.12rem;font-weight:700;color:#fff;margin-bottom:12px;}
+  .card .text-muted{color:#bfc7ce!important;font-size:1.05rem;margin-bottom:14px;}
+  .btn-outline-warning{
+    border-radius:11px;font-weight:700;padding:7px 18px;border:2px solid #ffe066;
+    color:#ffe066;background:transparent;
   }
-  .card .price {
-    font-size: 1.12rem;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 12px;
-    text-shadow: 0 1px 6px #ffe06613, 0 1px 0 #212;
+  .btn-outline-warning:hover{background:#ffe066;color:#23232c;}
+  .carousel-control-prev-icon,.carousel-control-next-icon{
+    background-color:#ffe066;border-radius:50%;padding:15px;
   }
-  .card .text-muted {
-    color: #bfc7ce !important;
-    font-size: 1.05rem;
-    margin-bottom: 14px;
+
+  /* Flash sales */
+  .flash-wrap{margin-top:60px;}
+  .flash-title{
+    font-size:1.9rem;font-weight:900;color:#ff6b6b;text-align:center;
+    margin:10px 0 28px;text-shadow:0 2px 14px #ff6b6b22;
   }
-  .btn-outline-warning {
-    border-radius: 11px;
-    font-weight: 700;
-    padding: 7px 18px;
-    letter-spacing: 0.03em;
-    box-shadow: 0 2px 9px #ffe06616;
-    border: 2px solid #ffe066;
-    color: #ffe066;
-    background: transparent;
-    transition: all .15s;
-    margin-top: 4px;
+  .flash-card{
+    background:linear-gradient(120deg,#211f25 92%, #262a33 100%);
+    border:none;border-radius:20px;color:#fff;box-shadow:0 6px 22px #ff6b6b1a;
+    min-height:360px;transition:transform .2s;
   }
-  .btn-outline-warning:hover {
-    background: #ffe066;
-    color: #23232c;
-    border-color: #ffe066;
-    box-shadow: 0 4px 12px #ffe06630;
-    transform: scale(1.03);
-  }
-  .carousel-control-prev-icon,
-  .carousel-control-next-icon {
-    background-color: #ffe066;
-    border-radius: 50%;
-    padding: 15px;
-    box-shadow: 0 2px 12px #ffe06642;
-    border: 2.5px solid #fff;
-    filter: drop-shadow(0 2px 8px #ffe06680);
-  }
-  .carousel-control-prev, .carousel-control-next {
-    opacity: 1 !important;
-    width: 4rem;
-  }
-  .carousel-control-prev:hover .carousel-control-prev-icon,
-  .carousel-control-next:hover .carousel-control-next-icon {
-    background-color: #fff;
-    border-color: #ffe066;
-  }
-  @media (max-width: 800px) {
-    .featured-title { font-size: 1.35rem; }
-    .carousel-inner { border-radius: 12px; }
-    .carousel-item .card { border-radius: 14px; min-height: 300px; }
-    .card-img-top { max-height: 110px; border-radius: 8px; }
-    .card-title { font-size: 1rem; }
-    .card .price { font-size: 0.95rem; }
-    .carousel-control-prev, .carousel-control-next { width: 2.3rem; }
-    .carousel-control-prev-icon, .carousel-control-next-icon { padding: 8px; }
-  }
+  .flash-card:hover{transform:translateY(-6px) scale(1.015);}
+  .badge-flash{background:#ff6b6b;border-radius:10px;padding:.3rem .6rem;font-weight:800;}
+  .flash-countdown{font-weight:700;color:#ffdede;font-size:.9rem;}
+  .price-old{color:#cbd3da;text-decoration:line-through;margin-right:.5rem;}
+  .price-new{color:#fff;font-weight:900;font-size:1.12rem;}
 </style>
 
 <div class="container py-5">
@@ -133,9 +77,15 @@
                   <img src="{{ p.image.url }}" alt="{{ p.name }}" class="card-img-top" loading="lazy">
                   <div class="card-body d-flex flex-column justify-content-end align-items-center">
                     <h5 class="card-title">{{ p.name }}</h5>
-                    {% with p.variants.first as variant %}
-                      {% if variant %}
-                        <p class="price" data-raw-price="{{ variant.price }}"></p>
+                    {% with v=p.variants.first %}
+                      {% if v %}
+                        {# Đẩy số thô ra data-* để JS format 20.000.000 #}
+                        <p class="price"
+                           data-price="{{ v.price }}"
+                           data-discounted="{{ v.discounted_price }}"
+                           data-sale="{% if v.is_flash_sale and v.flash_percent > 0 %}1{% else %}0{% endif %}"
+                           data-percent="{{ v.flash_percent }}">
+                        </p>
                       {% else %}
                         <p class="text-muted fst-italic">Liên hệ để biết giá</p>
                       {% endif %}
@@ -149,7 +99,6 @@
         </div>
       {% endfor %}
     </div>
-
     <button class="carousel-control-prev" type="button" data-bs-target="#featuredCarousel" data-bs-slide="prev">
       <span class="carousel-control-prev-icon"></span>
     </button>
@@ -158,33 +107,120 @@
     </button>
   </div>
   {% else %}
-    <p class="text-white text-center mt-4" data-aos="fade-in">Hiện không có sản phẩm nổi bật.</p>
+    <p class="text-white text-center mt-4">Hiện không có sản phẩm nổi bật.</p>
   {% endif %}
 </div>
 
-<!-- Format giá -->
+<!-- FLASH SALES -->
+<div class="container flash-wrap" data-aos="fade-up">
+  <h2 class="flash-title">⚡ Flash Sales</h2>
+  {% if flash_products %}
+    <div class="row g-3">
+      {% for p in flash_products %}
+        {% with v=p.variants.first %}
+        <div class="col-12 col-sm-6 col-lg-3 d-flex align-items-stretch" data-aos="zoom-in" data-aos-delay="{{ forloop.counter0|add:'50' }}">
+          <div class="card flash-card w-100 text-center p-2"
+               data-start="{{ p.flash_from|date:'c' }}"
+               data-end="{{ p.flash_to|date:'c' }}">
+            {% if p.image %}
+              <img src="{{ p.image.url }}" class="card-img-top" alt="{{ p.name }}" loading="lazy">
+            {% endif %}
+            <div class="card-body d-flex flex-column justify-content-end">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="card-title mb-0">{{ p.name }}</h5>
+                <span class="badge badge-flash">-{{ p.flash_percent }}%</span>
+              </div>
+              {% if v %}
+                <div class="mb-2">
+                  <span class="price-old" data-price-old="{{ v.price }}"></span>
+                  <span class="price-new" data-price-new="{{ v.discounted_price }}"></span>
+                </div>
+              {% endif %}
+              <div class="flash-countdown" data-countdown></div>
+              <a href="{% url 'product_detail' p.id %}" class="btn btn-outline-warning btn-sm mt-2">Xem chi tiết</a>
+            </div>
+          </div>
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted text-center">Chưa có sản phẩm Flash Sale.</p>
+  {% endif %}
+</div>
+
+<!-- JS: format giá & countdown -->
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll('.price').forEach(function (el) {
-      const raw = el.getAttribute('data-raw-price');
-      if (raw) {
-        const num = parseFloat(raw);
-        if (!isNaN(num)) {
-          el.textContent = num.toLocaleString('vi-VN') + '₫';
-        }
+  // === CONFIG ===
+  const WITH_CURRENCY = false; // Đổi true nếu muốn thêm "₫" => "20.000.000₫"
+
+  // Format "20.000.000" chắc chắn dùng dấu chấm
+  function formatDots(n){
+    n = Number(n) || 0;
+    const s = Math.round(n).toString();
+    return s.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+  function formatPrice(n){
+    return WITH_CURRENCY ? (formatDots(n) + "₫") : formatDots(n);
+  }
+
+  function updateCountdown(el,start,end){
+    const now = new Date().getTime();
+    const startTime = start? new Date(start).getTime():null;
+    const endTime = end? new Date(end).getTime():null;
+    let text='';
+    if(startTime && now<startTime){
+      const diff = startTime-now;
+      const h=Math.floor(diff/3600000), m=Math.floor(diff/60000)%60, s=Math.floor(diff/1000)%60;
+      text='Bắt đầu sau: '+h+'h '+m+'m '+s+'s';
+    }else if(endTime && now<endTime){
+      const diff=endTime-now;
+      const h=Math.floor(diff/3600000), m=Math.floor(diff/60000)%60, s=Math.floor(diff/1000)%60;
+      text='Còn lại: '+h+'h '+m+'m '+s+'s';
+    }else if(endTime && now>=endTime){
+      text='Đã kết thúc';
+    }
+    el.textContent=text;
+  }
+
+  document.addEventListener("DOMContentLoaded",function(){
+    // Featured: render giá bằng JS
+    document.querySelectorAll('.card .price[data-price]').forEach(function(el){
+      const price = Number(el.getAttribute('data-price')) || 0;
+      const discounted = Number(el.getAttribute('data-discounted')) || price;
+      const onSale = el.getAttribute('data-sale') === '1';
+      const percent = Number(el.getAttribute('data-percent')) || 0;
+
+      if (onSale && discounted < price) {
+        el.innerHTML =
+          `<span class="price-old">${formatPrice(price)}</span>
+           <span class="price-new">${formatPrice(discounted)}</span>`;
+      } else {
+        el.textContent = formatPrice(price);
       }
+    });
+
+    // Flash sales: format giá old/new
+    document.querySelectorAll('.price-old[data-price-old]').forEach(function(el){
+      const n = Number(el.getAttribute('data-price-old')) || 0;
+      el.textContent = formatPrice(n);
+    });
+    document.querySelectorAll('.price-new[data-price-new]').forEach(function(el){
+      const n = Number(el.getAttribute('data-price-new')) || 0;
+      el.textContent = formatPrice(n);
+    });
+
+    // Countdown
+    document.querySelectorAll('[data-countdown]').forEach(function(cd){
+      const card=cd.closest('.flash-card');
+      const start=card.getAttribute('data-start');
+      const end=card.getAttribute('data-end');
+      updateCountdown(cd,start,end);
+      setInterval(()=>updateCountdown(cd,start,end),1000);
     });
   });
 </script>
 
-<!-- AOS JS -->
 <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-<script>
-  AOS.init({
-    duration: 800,
-    offset: 50,
-    easing: 'ease-in-out',
-    once: true
-  });
-</script>
+<script>AOS.init({duration:800,offset:50,easing:'ease-in-out',once:true});</script>
 {% endblock %}

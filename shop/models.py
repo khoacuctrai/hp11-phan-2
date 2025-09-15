@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 CATEGORY_CHOICES = [
     ('iphone', 'iPhone'),
@@ -11,6 +12,7 @@ CATEGORY_CHOICES = [
     ('accessory', 'Phụ kiện'),
 ]
 
+
 class Product(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -19,15 +21,47 @@ class Product(models.Model):
     is_featured = models.BooleanField(default=False)
     stock = models.PositiveIntegerField(default=0)  # Cho sản phẩm không biến thể
 
+    # === Flash Sale ===
+    is_flash_sale = models.BooleanField(default=False, help_text="Bật tắt Flash Sale")
+    flash_percent = models.PositiveSmallIntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(90)],
+        help_text="Giảm giá (%) cho toàn bộ biến thể khi bật Flash Sale"
+    )
+    flash_from = models.DateTimeField(blank=True, null=True, help_text="Bắt đầu (tùy chọn)")
+    flash_to = models.DateTimeField(blank=True, null=True, help_text="Kết thúc (tùy chọn)")
+
     def __str__(self):
         return self.name
 
     def has_variants(self):
         return self.variants.exists()
 
+    def _normalized_window(self):
+        """Trả về (start, end) đã chuẩn hoá. Nếu nhập nhầm end < start thì bỏ ràng buộc thời gian."""
+        start, end = self.flash_from, self.flash_to
+        if start and end and end < start:
+            # Có thể đổi thành: start, end = end, start  (nếu muốn tự swap)
+            start, end = None, None
+        return start, end
+
+    def flash_active(self):
+        """Kiểm tra Flash Sale có đang hiệu lực (cờ bật + % > 0 + trong cửa sổ thời gian nếu có)."""
+        if not self.is_flash_sale or self.flash_percent <= 0:
+            return False
+        now = timezone.now()
+        start, end = self._normalized_window()
+        if start and now < start:
+            return False
+        if end and now > end:
+            return False
+        return True
+
     def display_price(self):
+        """Giá hiển thị: lấy biến thể đầu tiên (nếu có), có tính giảm giá."""
         first_variant = self.variants.first()
-        return first_variant.price if first_variant else 0
+        return first_variant.discounted_price() if first_variant else 0
+
 
 class ProductColor(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='colors')
@@ -36,6 +70,16 @@ class ProductColor(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.name}"
+
+    # Đồng bộ trạng thái/percent từ Product
+    @property
+    def is_flash_sale(self):
+        return self.product.flash_active()
+
+    @property
+    def flash_percent(self):
+        return self.product.flash_percent if self.product.flash_active() else 0
+
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
@@ -47,6 +91,22 @@ class ProductVariant(models.Model):
     def __str__(self):
         return f"{self.product.name} - {self.storage} - {self.color.name if self.color else 'No color'}"
 
+    # Đồng bộ trạng thái/percent từ Product
+    @property
+    def is_flash_sale(self):
+        return self.product.flash_active()
+
+    @property
+    def flash_percent(self):
+        return self.product.flash_percent if self.product.flash_active() else 0
+
+    def discounted_price(self):
+        """Giá sau giảm nếu đang Flash Sale; nếu không thì trả về giá gốc."""
+        if self.is_flash_sale and self.flash_percent > 0:
+            return int(round(self.price * (100 - self.flash_percent) / 100))
+        return self.price
+
+
 class CartItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cart_items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -54,7 +114,7 @@ class CartItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
 
     def get_price(self):
-        return self.variant.price if self.variant else 0
+        return self.variant.discounted_price() if self.variant else 0
 
     def get_total(self):
         return self.get_price() * self.quantity
@@ -62,6 +122,7 @@ class CartItem(models.Model):
     def __str__(self):
         variant_info = f" ({self.variant.storage})" if self.variant else ""
         return f"{self.product.name}{variant_info} x {self.quantity} ({self.user.username})"
+
 
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -79,6 +140,7 @@ class Comment(models.Model):
     def total_dislikes(self):
         return self.dislikes
 
+
 class CommentReaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='reactions')
@@ -91,6 +153,7 @@ class CommentReaction(models.Model):
 
     def __str__(self):
         return f"{self.user.username} {self.reaction} on comment {self.comment.id}"
+
 
 class Coupon(models.Model):
     code = models.CharField(max_length=50, unique=True)
@@ -105,6 +168,7 @@ class Coupon(models.Model):
 
     def __str__(self):
         return self.code
+
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
@@ -130,6 +194,7 @@ class Order(models.Model):
     def __str__(self):
         return f"Đơn hàng #{self.id} của {self.user.username}"
 
+
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -137,11 +202,12 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
 
     def total(self):
-        return (self.variant.price if self.variant else 0) * self.quantity
+        return (self.variant.discounted_price() if self.variant else 0) * self.quantity
 
     def __str__(self):
         variant_info = f" ({self.variant.storage})" if self.variant else ""
         return f"{self.product.name}{variant_info} x {self.quantity}"
+
 
 class Feedback(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedbacks')
@@ -152,6 +218,7 @@ class Feedback(models.Model):
     def __str__(self):
         label = "Khiếu nại" if self.is_complaint else "Góp ý"
         return f"{label} từ {self.user.username}"
+
 
 class CarouselImage(models.Model):
     title = models.CharField("Tiêu đề", max_length=100, blank=True)

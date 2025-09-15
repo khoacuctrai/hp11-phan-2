@@ -4,18 +4,30 @@ from .models import (
     ProductColor, CarouselImage, Coupon
 )
 
+@admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'is_featured')
-    list_filter = ('category', 'is_featured')
+    list_display = ('name', 'category', 'is_featured', 'is_flash_sale', 'flash_percent', 'flash_from', 'flash_to')
+    list_filter = ('category', 'is_featured', 'is_flash_sale')
     search_fields = ('name',)
+    fieldsets = (
+        (None, {"fields": ("name", "description", "category", "image", "is_featured", "stock")}),
+        ("Flash Sale", {"fields": ("is_flash_sale", "flash_percent", "flash_from", "flash_to")}),
+    )
 
+@admin.register(ProductVariant)
 class ProductVariantAdmin(admin.ModelAdmin):
-    list_display = ('product', 'storage', 'price')
-    list_filter = ('storage',)
+    list_display = ('product', 'storage', 'price', 'stock', 'flash_badge', 'price_after_flash')
+    list_filter = ('storage', 'product__category')
     search_fields = ('product__name',)
 
-admin.site.register(Product, ProductAdmin)
-admin.site.register(ProductVariant, ProductVariantAdmin)
+    def flash_badge(self, obj):
+        return "✅" if obj.is_flash_sale else "—"
+    flash_badge.short_description = "Flash Sale"
+
+    def price_after_flash(self, obj):
+        return obj.discounted_price()
+    price_after_flash.short_description = "Giá sau giảm"
+
 admin.site.register(CartItem)
 admin.site.register(Comment)
 admin.site.register(Order)
