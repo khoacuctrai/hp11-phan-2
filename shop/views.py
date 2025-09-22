@@ -207,7 +207,14 @@ def remove_from_cart(request, item_id):
 
 # =================== Product & Comment ================
 
-@login_required
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib import messages
+from .models import Product, ProductVariant, CartItem
+
+@login_required(login_url='login')  # khi chưa login sẽ tự động redirect tới trang đăng nhập
 def add_to_cart(request, pk):
     product = get_object_or_404(Product, pk=pk)
     variant_id = request.POST.get('variant_id')
@@ -215,7 +222,7 @@ def add_to_cart(request, pk):
 
     variant = None
     if variant_id:
-        variant = get_object_or_404(ProductVariant, id=variant_id)
+        variant = get_object_or_404(ProductVariant, id=variant_id, product=product)
         if variant.stock < quantity:
             messages.error(request, "Sản phẩm không đủ hàng trong kho.")
             return redirect('product_detail', pk=pk)
@@ -224,11 +231,21 @@ def add_to_cart(request, pk):
             messages.error(request, "Sản phẩm không đủ hàng trong kho.")
             return redirect('product_detail', pk=pk)
 
-    cart_item, _ = CartItem.objects.get_or_create(user=request.user, product=product, variant=variant)
-    cart_item.quantity = quantity
+    cart_item, created = CartItem.objects.get_or_create(
+        user=request.user,
+        product=product,
+        variant=variant
+    )
+    if not created:
+        cart_item.quantity += quantity
+    else:
+        cart_item.quantity = quantity
     cart_item.save()
+
     messages.success(request, f"Đã thêm {quantity} sản phẩm vào giỏ hàng!")
     return redirect('cart')
+
+
 
 
 def product_detail(request, pk):
@@ -238,36 +255,7 @@ def product_detail(request, pk):
     comments = Comment.objects.filter(product=product).order_by('-created_at')
     related_products = Product.objects.filter(category=product.category).exclude(id=product.id)[:4]
 
-    if request.method == 'POST':
-        if 'quantity' in request.POST:
-            quantity = int(request.POST.get('quantity', 1))
-            variant = None
-            if product.has_variants():
-                variant_id = request.POST.get('variant_id')
-                variant = get_object_or_404(ProductVariant, id=variant_id, product=product)
-                if variant.stock < quantity:
-                    messages.error(request, "Số lượng còn lại không đủ!")
-                    return redirect('product_detail', pk=pk)
-            else:
-                if hasattr(product, 'stock') and product.stock < quantity:
-                    messages.error(request, "Số lượng còn lại không đủ!")
-                    return redirect('product_detail', pk=pk)
-            cart_item, _ = CartItem.objects.get_or_create(user=request.user, product=product, variant=variant)
-            cart_item.quantity = quantity
-            cart_item.save()
-            messages.success(request, f'✅ Đã thêm {quantity} x "{product.name}" vào giỏ hàng.')
-            return redirect('cart')
-        else:
-            form = CommentForm(request.POST)
-            if form.is_valid():
-                comment = form.save(commit=False)
-                comment.user = request.user
-                comment.product = product
-                comment.save()
-                messages.success(request, '💬 Bình luận đã được gửi.')
-                return redirect('product_detail', pk=pk)
-    else:
-        form = CommentForm()
+    form = CommentForm()
 
     return render(request, 'shop/product_detail.html', {
         'product': product,
