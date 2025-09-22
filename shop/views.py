@@ -230,7 +230,7 @@ def add_to_cart(request, pk):
     messages.success(request, f"Đã thêm {quantity} sản phẩm vào giỏ hàng!")
     return redirect('cart')
 
-@login_required
+
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
     variants = product.variants.all() if product.has_variants() else []
