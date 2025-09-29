@@ -317,7 +317,7 @@
   <div class="bg-comment mb-4">
     <form method="post" action="{% url 'add_to_cart' product.id %}">
       {% csrf_token %}
-      <div class="mb-3">
+      <div class="mb-3">      
         {{ form.content.label_tag }}
         {{ form.content }}
       </div>
